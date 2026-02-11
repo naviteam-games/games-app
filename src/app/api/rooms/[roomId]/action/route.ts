@@ -67,7 +67,8 @@ export async function POST(
     if (plugin.isPhaseComplete(newStateData, gameState.phase)) {
       newStateData = plugin.resolvePhase(newStateData, gameState.phase);
 
-      if (plugin.isGameOver(newStateData)) {
+      // After round_end, check if the game is over
+      if (gameState.phase !== "playing" && plugin.isGameOver(newStateData)) {
         newPhase = "finished";
         phaseDeadline = null;
 

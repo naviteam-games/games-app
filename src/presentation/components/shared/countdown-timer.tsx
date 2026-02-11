@@ -6,9 +6,11 @@ import { useEffect, useRef } from "react";
 interface CountdownTimerProps {
   deadline: string | null;
   onExpired?: () => void;
+  /** Render as inline span instead of block div */
+  inline?: boolean;
 }
 
-export function CountdownTimer({ deadline, onExpired }: CountdownTimerProps) {
+export function CountdownTimer({ deadline, onExpired, inline }: CountdownTimerProps) {
   const { timeLeft } = useCountdown(deadline);
   const firedRef = useRef(false);
 
@@ -29,6 +31,14 @@ export function CountdownTimer({ deadline, onExpired }: CountdownTimerProps) {
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
   const isUrgent = timeLeft <= 10;
+
+  if (inline) {
+    return (
+      <span className={`font-mono font-bold tabular-nums ${isUrgent ? "text-destructive" : ""}`}>
+        {minutes}:{seconds.toString().padStart(2, "0")}
+      </span>
+    );
+  }
 
   return (
     <div className={`text-2xl font-mono font-bold tabular-nums ${isUrgent ? "text-destructive" : ""}`}>

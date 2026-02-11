@@ -32,9 +32,6 @@ export function validateAction(
   const state = stateRaw as unknown as NumberGuesserState;
 
   if (action.type === "next_round") {
-    if (state.currentRound > state.totalRounds) {
-      return { valid: false, error: "Game is already over" };
-    }
     return { valid: true };
   }
 
@@ -168,10 +165,12 @@ export function resolvePhase(stateRaw: Record<string, unknown>, phase: GamePhase
 export function getNextPhase(currentPhase: GamePhase, stateRaw: Record<string, unknown>): GamePhase {
   const state = stateRaw as unknown as NumberGuesserState;
   if (currentPhase === "playing") {
-    if (state.currentRound > state.totalRounds) return "finished";
     return "round_end";
   }
-  if (currentPhase === "round_end") return "playing";
+  if (currentPhase === "round_end") {
+    if (state.currentRound > state.totalRounds) return "finished";
+    return "playing";
+  }
   return currentPhase;
 }
 

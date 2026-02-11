@@ -52,7 +52,7 @@ export function GameContainer({ room, players, gameState, currentUserId, onRefre
         <div>
           <h1 className="text-2xl font-bold">{room.name}</h1>
           <p className="text-muted-foreground">
-            Round {gameState.currentRound} of {gameState.totalRounds}
+            Round {Math.min(gameState.currentRound, gameState.totalRounds)} of {gameState.totalRounds}
           </p>
         </div>
       </div>

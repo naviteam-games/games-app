@@ -40,6 +40,13 @@ export function NumberGuesserBoard({ playerView, playerId, isHost, phaseDeadline
     }
   }, [isHost, phase, onAction]);
 
+  // Host auto-advances to final results when the last round_end countdown expires
+  const handleFinalRoundExpired = useCallback(() => {
+    if (isHost) {
+      onAction("next_round", {});
+    }
+  }, [isHost, onAction]);
+
   return (
     <div className="space-y-6">
       {/* Timer during playing phase */}
@@ -74,7 +81,7 @@ export function NumberGuesserBoard({ playerView, playerId, isHost, phaseDeadline
                     <Badge variant="secondary">{playerScores[p.id] ?? 0}</Badge>
                     {phase === "playing" && status && (
                       status.solved ? (
-                        <Badge className="bg-green-600 text-white text-xs">Solved in {status.guessCount}!</Badge>
+                        <Badge className="bg-emerald-500 text-white dark:bg-emerald-500 text-xs">Solved in {status.guessCount}!</Badge>
                       ) : status.guessCount > 0 ? (
                         <Badge variant="outline" className="text-xs">Guessing ({status.guessCount})</Badge>
                       ) : null
@@ -89,23 +96,26 @@ export function NumberGuesserBoard({ playerView, playerId, isHost, phaseDeadline
       {/* Round End Results — player's own result + correct answer */}
       {phase === "round_end" && lastRoundResult && (() => {
         const myResult = (lastRoundResult.playerResults ?? {})[playerId];
+        const currentRound = publicState.currentRound as number;
+        const totalRounds = publicState.totalRounds as number;
+        const isFinalRound = currentRound > totalRounds;
         return (
           <Card className="border-primary">
             <CardHeader>
-              <CardTitle>Round Results</CardTitle>
+              <CardTitle>{isFinalRound ? "Final Round Results" : "Round Results"}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-center text-2xl font-bold">
                 The number was: {lastRoundResult.targetNumber}
               </p>
               {myResult && (
-                <div className={`flex items-center justify-between p-3 rounded ${myResult.correct ? "bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800" : "bg-muted/50"}`}>
+                <div className={`flex items-center justify-between p-3 rounded ${myResult.correct ? "bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800" : "bg-muted/50"}`}>
                   <span className="font-medium">Your result</span>
                   <div className="flex items-center gap-2">
                     {myResult.correct ? (
                       <>
                         <span className="text-sm">{myResult.guessCount} {myResult.guessCount === 1 ? "guess" : "guesses"}</span>
-                        <Badge className="bg-green-600 text-white">+{myResult.score} pts</Badge>
+                        <Badge className="bg-emerald-500 text-white dark:bg-emerald-500">+{myResult.score} pts</Badge>
                       </>
                     ) : (
                       <span className="text-muted-foreground text-sm">
@@ -115,17 +125,32 @@ export function NumberGuesserBoard({ playerView, playerId, isHost, phaseDeadline
                   </div>
                 </div>
               )}
-              {isHost && (
-                <div className="pt-4 text-center">
-                  <Button onClick={() => onAction("next_round", {})}>
-                    Next Round
-                  </Button>
+              {isFinalRound ? (
+                <div className="pt-4 text-center space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Heading to final results in{" "}
+                    <CountdownTimer
+                      deadline={phaseDeadline!}
+                      onExpired={handleFinalRoundExpired}
+                      inline
+                    />
+                  </p>
                 </div>
-              )}
-              {!isHost && (
-                <p className="pt-4 text-center text-sm text-muted-foreground">
-                  Waiting for host to start next round...
-                </p>
+              ) : (
+                <>
+                  {isHost && (
+                    <div className="pt-4 text-center">
+                      <Button onClick={() => onAction("next_round", {})}>
+                        Next Round
+                      </Button>
+                    </div>
+                  )}
+                  {!isHost && (
+                    <p className="pt-4 text-center text-sm text-muted-foreground">
+                      Waiting for host to start next round...
+                    </p>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
@@ -137,9 +162,9 @@ export function NumberGuesserBoard({ playerView, playerId, isHost, phaseDeadline
         <>
           {/* Solved celebration */}
           {solved ? (
-            <Card className="border-green-500 bg-green-50 dark:bg-green-950/20">
+            <Card className="border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20">
               <CardContent className="py-6 text-center space-y-2">
-                <p className="text-2xl font-bold text-green-600">Correct!</p>
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">Correct!</p>
                 <p className="text-lg">Solved in {myGuesses.length} {myGuesses.length === 1 ? "guess" : "guesses"}!</p>
                 <p className="text-muted-foreground">Waiting for other players...</p>
               </CardContent>
@@ -183,11 +208,11 @@ export function NumberGuesserBoard({ playerView, playerId, isHost, phaseDeadline
                     <div key={i} className="flex items-center justify-between p-2 rounded bg-muted/50">
                       <span className="font-mono text-lg">{g}</span>
                       {hints[i] === "correct" ? (
-                        <Badge className="bg-green-600 text-white">Correct!</Badge>
+                        <Badge className="bg-emerald-500 text-white dark:bg-emerald-500">Correct!</Badge>
                       ) : hints[i] === "higher" ? (
-                        <Badge className="bg-orange-500 text-white">Higher</Badge>
+                        <Badge className="bg-amber-500 text-white dark:bg-amber-500">Higher</Badge>
                       ) : (
-                        <Badge className="bg-blue-500 text-white">Lower</Badge>
+                        <Badge className="bg-sky-500 text-white dark:bg-sky-500">Lower</Badge>
                       )}
                     </div>
                   ))}
