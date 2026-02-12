@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CountdownTimer } from "@/presentation/components/shared/countdown-timer";
 import type { GameBoardProps } from "@/domain/game-engine/types";
 import type { PlayerRoundResult } from "../types";
@@ -59,39 +58,35 @@ export function NumberGuesserBoard({ playerView, playerId, isHost, phaseDeadline
         </div>
       )}
 
-      {/* Scoreboard */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Scoreboard</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            {players
-              .sort((a, b) => (playerScores[b.id] ?? 0) - (playerScores[a.id] ?? 0))
-              .map((p) => {
-                const status = playerStatus?.[p.id];
-                return (
-                  <div key={p.id} className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                      <AvatarFallback className="text-xs">
-                        {p.displayName.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium">{p.displayName}</span>
-                    <Badge variant="secondary">{playerScores[p.id] ?? 0}</Badge>
-                    {phase === "playing" && status && (
-                      status.solved ? (
-                        <Badge className="bg-emerald-500 text-white dark:bg-emerald-500 text-xs">Solved in {status.guessCount}!</Badge>
-                      ) : status.guessCount > 0 ? (
-                        <Badge variant="outline" className="text-xs">Guessing ({status.guessCount})</Badge>
-                      ) : null
-                    )}
-                  </div>
-                );
-              })}
+      {/* Your Score + Round Progress */}
+      {(() => {
+        const myScore = playerScores[playerId] ?? 0;
+        const sortedScores = Object.values(playerScores).sort((a, b) => b - a);
+        const myRank = sortedScores.indexOf(myScore) + 1;
+        const totalPlayers = players.length;
+        const solvedCount = phase === "playing"
+          ? Object.values(playerStatus ?? {}).filter((s) => s.solved).length
+          : 0;
+
+        return (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground">Your Score</span>
+              <span className="text-xl font-bold">{myScore}</span>
+              <Badge variant="outline" className="text-xs">
+                {myRank === 1 ? "1st" : myRank === 2 ? "2nd" : myRank === 3 ? "3rd" : `${myRank}th`} of {totalPlayers}
+              </Badge>
+            </div>
+            {phase === "playing" && (
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-xs">
+                  {solvedCount} / {totalPlayers} solved
+                </Badge>
+              </div>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        );
+      })()}
 
       {/* Round End Results — player's own result + correct answer */}
       {phase === "round_end" && lastRoundResult && (() => {

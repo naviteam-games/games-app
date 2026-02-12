@@ -34,6 +34,7 @@ export default function JoinByCodePage() {
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
+  const [nameCollected, setNameCollected] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const [joinAttempted, setJoinAttempted] = useState(false);
 
@@ -67,45 +68,56 @@ export default function JoinByCodePage() {
     signInAnon();
   }, [authLoading, user, signingIn, supabase.auth]);
 
-  // Show name prompt once anonymous user is ready
+  // Show name prompt once anonymous user is ready (only once)
   useEffect(() => {
-    if (user && isAnonymous && info?.valid && !showNamePrompt && !joining) {
+    if (user && isAnonymous && info?.valid && !showNamePrompt && !nameCollected && !joining) {
       setShowNamePrompt(true);
     }
-  }, [user, isAnonymous, info, showNamePrompt, joining]);
+  }, [user, isAnonymous, info, showNamePrompt, nameCollected, joining]);
 
   const handleJoin = useCallback(async () => {
     if (!info?.room) return;
     setJoining(true);
     setError(null);
 
-    const res = await fetch(`/api/rooms/${info.room.id}/join`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code }),
-    });
+    try {
+      const res = await fetch(`/api/rooms/${info.room.id}/join`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
 
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Failed to join game");
+        setJoining(false);
+        return;
+      }
+
+      router.push(`/room/${data.room.id}`);
+    } catch {
+      setError("Failed to join game. Please try again.");
       setJoining(false);
-      return;
     }
-
-    router.push(`/room/${data.room.id}`);
   }, [info, code, router]);
 
   const handleNameComplete = async (displayName: string) => {
     setShowNamePrompt(false);
+    setNameCollected(true);
 
-    // Update profile with chosen display name
-    await supabase
-      .from("profiles")
-      .update({ display_name: displayName })
-      .eq("id", user!.id);
+    try {
+      // Update profile with chosen display name
+      await supabase
+        .from("profiles")
+        .update({ display_name: displayName })
+        .eq("id", user!.id);
 
-    // Now join the room
-    await handleJoin();
+      // Now join the room
+      await handleJoin();
+    } catch {
+      setError("Failed to join game. Please try again.");
+      setJoining(false);
+    }
   };
 
   // Auto-join for authenticated (non-anonymous) users
@@ -172,9 +184,16 @@ export default function JoinByCodePage() {
             </p>
           </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && (
+            <div className="space-y-2">
+              <p className="text-sm text-destructive">{error}</p>
+              <Button size="sm" variant="outline" onClick={() => handleJoin()}>
+                Try Again
+              </Button>
+            </div>
+          )}
 
-          {joining && (
+          {joining && !error && (
             <p className="text-sm text-muted-foreground">Joining game...</p>
           )}
         </CardContent>

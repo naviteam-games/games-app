@@ -27,6 +27,17 @@ export function NumberGuesserConfig({ config, onChange }: GameConfigProps) {
           onChange={(e) => onChange({ ...config, maxNumber: Number(e.target.value) })}
         />
       </div>
+      <div className="space-y-2">
+        <Label>Time per Round (seconds)</Label>
+        <Input
+          type="number"
+          min={5}
+          max={60}
+          value={(config.roundDurationSeconds as number) ?? 30}
+          onChange={(e) => onChange({ ...config, roundDurationSeconds: Math.min(60, Math.max(5, Number(e.target.value))) })}
+        />
+        <p className="text-xs text-muted-foreground">Suggested: 30s. Max: 60s.</p>
+      </div>
     </div>
   );
 }

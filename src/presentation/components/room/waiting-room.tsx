@@ -7,9 +7,41 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { HelpCircle, QrCode } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import type { GameRoom } from "@/domain/entities/game-room";
 import type { Player } from "@/domain/entities/player";
 import type { InviteCode } from "@/domain/entities/invite";
+
+const howToPlay = {
+  "number-guesser": {
+    host: [
+      "A secret number is picked each round.",
+      "Players guess and get hints: higher or lower.",
+      "Fewer guesses = more points. First to solve scores highest.",
+      "The game runs multiple rounds — top scorer wins!",
+    ],
+    hostGuide: [
+      "Share the invite link so players can join.",
+      "Wait for all players to click Ready.",
+      "Press Start Game once everyone is ready.",
+      "Between rounds, you control when the next round begins.",
+    ],
+    player: [
+      "Each round, guess the secret number.",
+      "After each guess you'll see: Higher or Lower.",
+      "Solve it in fewer guesses to score more points.",
+      "Most points after all rounds wins!",
+    ],
+  },
+} as Record<string, { host: string[]; hostGuide: string[]; player: string[] }>;
 
 interface WaitingRoomProps {
   room: GameRoom;
@@ -23,13 +55,17 @@ interface WaitingRoomProps {
 export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId, onRefresh }: WaitingRoomProps) {
   const [starting, setStarting] = useState(false);
   const [readying, setReadying] = useState(false);
+  const [showQr, setShowQr] = useState(false);
+  const currentPlayer = players.find((p) => p.userId === currentUserId);
+  const showHowToPlayModal = !isHost && currentPlayer?.status !== "ready";
+  const [howToPlayOpen, setHowToPlayOpen] = useState(showHowToPlayModal);
+  const rules = howToPlay[room.gameSlug];
 
   const inviteCode = inviteCodes[0]?.code;
   const inviteLink = typeof window !== "undefined"
     ? `${window.location.origin}/join/${inviteCode}`
     : "";
 
-  const currentPlayer = players.find((p) => p.userId === currentUserId);
   const allReady = players.length >= 2 && players.every((p) => p.status === "ready" || p.userId === room.hostId);
 
   const copyInvite = () => {
@@ -81,12 +117,55 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
             <Button variant="outline" size="sm" onClick={copyInvite}>
               Copy Link
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setShowQr((v) => !v)}>
+              <QrCode className="h-4 w-4" />
+            </Button>
           </div>
+          {showQr && inviteLink && (
+            <div className="flex justify-center pt-2">
+              <div className="bg-white p-3 rounded-lg">
+                <QRCodeSVG value={inviteLink} size={180} />
+              </div>
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">
             Share this link or code with your teammates
           </p>
         </CardContent>
       </Card>
+
+      {/* How to Play & Host Guide — host sees inline cards */}
+      {isHost && rules && (
+        <>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <HelpCircle className="h-4 w-4" />
+                How to Play
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                {rules.host.map((rule, i) => (
+                  <li key={i}>{rule}</li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Host Guide</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+                {rules.hostGuide.map((step, i) => (
+                  <li key={i}>{step}</li>
+                ))}
+              </ol>
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       {/* Player List */}
       <Card>
@@ -122,6 +201,26 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
           </div>
         </CardContent>
       </Card>
+
+      {/* How to Play — players see modal before readying up */}
+      {!isHost && rules && (
+        <Dialog open={howToPlayOpen} onOpenChange={setHowToPlayOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>How to Play</DialogTitle>
+              <DialogDescription>Quick rules before you start</DialogDescription>
+            </DialogHeader>
+            <ul className="list-disc list-inside space-y-2 text-sm">
+              {rules.player.map((rule, i) => (
+                <li key={i}>{rule}</li>
+              ))}
+            </ul>
+            <Button className="w-full mt-2" onClick={() => setHowToPlayOpen(false)}>
+              Got it!
+            </Button>
+          </DialogContent>
+        </Dialog>
+      )}
 
       <Separator />
 
