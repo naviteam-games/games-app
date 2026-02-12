@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { motion, AnimatePresence } from "framer-motion";
 import { HelpCircle, QrCode } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import type { GameRoom } from "@/domain/entities/game-room";
@@ -42,6 +43,29 @@ const howToPlay = {
     ],
   },
 } as Record<string, { host: string[]; hostGuide: string[]; player: string[] }>;
+
+// Stable pseudo-random from player ID — consistent across re-renders
+function hashCode(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
+}
+
+const fontSizes = ["text-base", "text-lg", "text-xl", "text-2xl", "text-3xl"];
+const fontWeights = ["font-medium", "font-semibold", "font-bold", "font-extrabold"];
+
+const slideDirections = [
+  { x: -120, y: 0 },   // left
+  { x: 120, y: 0 },    // right
+  { x: 0, y: -60 },    // top
+  { x: 0, y: 60 },     // bottom
+  { x: -80, y: -40 },  // top-left
+  { x: 80, y: -40 },   // top-right
+  { x: -80, y: 40 },   // bottom-left
+  { x: 80, y: 40 },    // bottom-right
+];
 
 interface WaitingRoomProps {
   room: GameRoom;
@@ -181,7 +205,7 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
         </Card>
       )}
 
-      {/* Player List */}
+      {/* Player Names — kinetic typography flow */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">
@@ -189,27 +213,60 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {participatingPlayers.map((player) => (
-              <div key={player.id} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>
-                      {player.displayName.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium">{player.displayName}</span>
-                  {player.isAnonymous && (
-                    <Badge variant="outline" className="text-xs">Guest</Badge>
-                  )}
-                </div>
-                {player.userId === room.hostId ? (
-                  <Badge variant="secondary">Host</Badge>
-                ) : (
-                  <Badge variant="outline">Joined</Badge>
-                )}
-              </div>
-            ))}
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-3 overflow-hidden py-2">
+            <AnimatePresence>
+              {participatingPlayers.map((player) => {
+                const h = hashCode(player.userId);
+                const size = fontSizes[h % fontSizes.length];
+                const weight = fontWeights[(h >> 4) % fontWeights.length];
+                const dir = slideDirections[(h >> 8) % slideDirections.length];
+                // Each bubble gets a unique float pattern
+                const floatDuration = 2.5 + (h % 20) / 10;       // 2.5–4.5s
+                const floatX = 3 + (h % 5);                       // 3–7px
+                const floatY = 4 + ((h >> 3) % 6);                // 4–9px
+                const floatDelay = ((h >> 6) % 10) / 10;          // 0–0.9s
+
+                return (
+                  <motion.span
+                    key={player.id}
+                    className={`${size} ${weight} leading-tight whitespace-nowrap rounded-full border bg-muted/50 px-4 py-1.5 select-none`}
+                    initial={{ opacity: 0, x: dir.x, y: dir.y, scale: 0.6 }}
+                    animate={{
+                      opacity: 1,
+                      x: [0, floatX, -floatX, 0],
+                      y: [0, -floatY, floatY, 0],
+                      scale: 1,
+                    }}
+                    exit={{ opacity: 0, scale: 0.4 }}
+                    transition={{
+                      opacity: { duration: 0.4 },
+                      scale: { type: "spring", stiffness: 180, damping: 18 },
+                      x: {
+                        duration: floatDuration,
+                        repeat: Infinity,
+                        repeatType: "mirror",
+                        ease: "easeInOut",
+                        delay: floatDelay,
+                      },
+                      y: {
+                        duration: floatDuration * 0.8,
+                        repeat: Infinity,
+                        repeatType: "mirror",
+                        ease: "easeInOut",
+                        delay: floatDelay + 0.3,
+                      },
+                    }}
+                  >
+                    {player.displayName}
+                    {player.userId === room.hostId && (
+                      <span className="text-xs font-normal text-muted-foreground ml-1 align-middle">
+                        (host)
+                      </span>
+                    )}
+                  </motion.span>
+                );
+              })}
+            </AnimatePresence>
           </div>
         </CardContent>
       </Card>
