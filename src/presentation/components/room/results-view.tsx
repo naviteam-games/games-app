@@ -11,9 +11,11 @@ interface ResultsViewProps {
   room: GameRoom;
   players: Player[];
   gameState: GameState;
+  currentUserId: string;
+  isHost: boolean;
 }
 
-export function ResultsView({ room, players, gameState }: ResultsViewProps) {
+export function ResultsView({ room, players, gameState, currentUserId, isHost }: ResultsViewProps) {
   const plugin = gameRegistry.getPlugin(room.gameSlug);
 
   if (!plugin) {
@@ -37,6 +39,8 @@ export function ResultsView({ room, players, gameState }: ResultsViewProps) {
           displayName: p.displayName,
           avatarUrl: p.avatarUrl,
         }))}
+        currentUserId={currentUserId}
+        isHost={isHost}
       />
 
       <div className="flex justify-center">

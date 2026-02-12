@@ -45,6 +45,7 @@ export function GameContainer({ room, players, gameState, currentUserId, onRefre
 
   const Board = plugin.BoardComponent;
   const isHost = room.hostId === currentUserId;
+  const isSpectator = isHost && room.config.hostPlays === false;
 
   return (
     <div className="max-w-4xl mx-auto space-y-4">
@@ -61,14 +62,17 @@ export function GameContainer({ room, players, gameState, currentUserId, onRefre
         playerView={playerView}
         playerId={currentUserId}
         isHost={isHost}
+        isSpectator={isSpectator}
         phaseDeadline={gameState.phaseDeadline}
         onAction={handleAction}
-        players={players.map((p) => ({
-          id: p.userId,
-          displayName: p.displayName,
-          avatarUrl: p.avatarUrl,
-          score: p.score,
-        }))}
+        players={players
+          .filter((p) => !isSpectator || p.userId !== currentUserId)
+          .map((p) => ({
+            id: p.userId,
+            displayName: p.displayName,
+            avatarUrl: p.avatarUrl,
+            score: p.score,
+          }))}
       />
     </div>
   );

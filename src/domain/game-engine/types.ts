@@ -34,6 +34,7 @@ export interface GameBoardProps {
   playerView: PlayerView;
   playerId: string;
   isHost: boolean;
+  isSpectator: boolean;
   phaseDeadline: string | null;
   onAction: (actionType: string, data: Record<string, unknown>) => void;
   players: Array<{ id: string; displayName: string; avatarUrl: string | null; score: number }>;
@@ -47,6 +48,8 @@ export interface GameConfigProps {
 export interface GameResultsProps {
   results: GameResult;
   players: Array<{ id: string; displayName: string; avatarUrl: string | null }>;
+  currentUserId: string;
+  isHost: boolean;
 }
 
 export interface IGamePlugin {
@@ -55,6 +58,7 @@ export interface IGamePlugin {
   description: string;
   minPlayers: number;
   maxPlayers: number;
+  hostPlays: boolean;
 
   // Pure game logic
   initializeState(config: GameConfig, playerIds: string[]): Record<string, unknown>;

@@ -23,6 +23,7 @@ export const numberGuesserPlugin: IGamePlugin = {
   description: "Guess the secret number! Closest guess wins the round.",
   minPlayers: 2,
   maxPlayers: 20,
+  hostPlays: true,
 
   initializeState(config: GameConfig, playerIds: string[]): Record<string, unknown> {
     return initializeState(config, playerIds);

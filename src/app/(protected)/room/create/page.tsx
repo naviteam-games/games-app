@@ -20,6 +20,7 @@ import { NumberGuesserConfig } from "@/games/number-guesser/components/number-gu
 import { getDefaultConfig as getNumberGuesserDefaults } from "@/games/number-guesser/logic";
 import type { ComponentType } from "react";
 import type { GameConfigProps } from "@/domain/game-engine/types";
+import { gameRegistry } from "@/games/registry";
 
 const gameConfigs: Record<string, { Component: ComponentType<GameConfigProps>; defaults: Record<string, unknown> }> = {
   "number-guesser": { Component: NumberGuesserConfig, defaults: getNumberGuesserDefaults() },
@@ -39,6 +40,7 @@ export default function CreateRoomPage() {
   const [gameSlug, setGameSlug] = useState("");
   const [maxPlayers, setMaxPlayers] = useState(DEFAULT_MAX_PLAYERS);
   const [config, setConfig] = useState<Record<string, unknown>>({});
+  const [hostPlays, setHostPlays] = useState(true);
   const [games, setGames] = useState<GameType[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -52,6 +54,7 @@ export default function CreateRoomPage() {
         if (data.length > 0) {
           setGameSlug(data[0].slug);
           setConfig(gameConfigs[data[0].slug]?.defaults ?? {});
+          setHostPlays(gameRegistry.getPlugin(data[0].slug)?.hostPlays ?? true);
         }
       }
     });
@@ -60,13 +63,15 @@ export default function CreateRoomPage() {
   const handleGameSlugChange = (slug: string) => {
     setGameSlug(slug);
     setConfig(gameConfigs[slug]?.defaults ?? {});
+    setHostPlays(gameRegistry.getPlugin(slug)?.hostPlays ?? true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const parsed = createRoomSchema.safeParse({ name, gameSlug, maxPlayers, config: Object.keys(config).length > 0 ? config : undefined });
+    const fullConfig = { ...config, hostPlays };
+    const parsed = createRoomSchema.safeParse({ name, gameSlug, maxPlayers, config: fullConfig });
     if (!parsed.success) {
       setError(parsed.error.issues[0].message);
       return;
@@ -139,6 +144,22 @@ export default function CreateRoomPage() {
                 })()}
               </div>
             )}
+
+            <div className="space-y-2">
+              <Label htmlFor="hostRole">Host Role</Label>
+              <Select value={hostPlays ? "play" : "spectate"} onValueChange={(v) => setHostPlays(v === "play")}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="play">Play in the game</SelectItem>
+                  <SelectItem value="spectate">Spectate &amp; manage only</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground">
+                {hostPlays ? "You'll participate as a player" : "You'll spectate and manage the game"}
+              </p>
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="maxPlayers">Max Players</Label>

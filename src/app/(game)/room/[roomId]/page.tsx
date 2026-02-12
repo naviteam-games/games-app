@@ -156,6 +156,8 @@ export default function RoomPage() {
         room={room}
         players={players}
         gameState={gameState}
+        currentUserId={user.id}
+        isHost={isHost}
       />
     );
   }

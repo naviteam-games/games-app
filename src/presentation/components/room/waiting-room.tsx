@@ -30,8 +30,8 @@ const howToPlay = {
     ],
     hostGuide: [
       "Share the invite link so players can join.",
-      "Wait for all players to click Ready.",
-      "Press Start Game once everyone is ready.",
+      "Wait for players to join the room.",
+      "Press Start Game once at least 2 players have joined.",
       "Between rounds, you control when the next round begins.",
     ],
     player: [
@@ -54,11 +54,8 @@ interface WaitingRoomProps {
 
 export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId, onRefresh }: WaitingRoomProps) {
   const [starting, setStarting] = useState(false);
-  const [readying, setReadying] = useState(false);
   const [showQr, setShowQr] = useState(false);
-  const currentPlayer = players.find((p) => p.userId === currentUserId);
-  const showHowToPlayModal = !isHost && currentPlayer?.status !== "ready";
-  const [howToPlayOpen, setHowToPlayOpen] = useState(showHowToPlayModal);
+  const [howToPlayOpen, setHowToPlayOpen] = useState(!isHost);
   const rules = howToPlay[room.gameSlug];
 
   const inviteCode = inviteCodes[0]?.code;
@@ -66,18 +63,16 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
     ? `${window.location.origin}/join/${inviteCode}`
     : "";
 
-  const allReady = players.length >= 2 && players.every((p) => p.status === "ready" || p.userId === room.hostId);
+  const hostSpectating = room.config.hostPlays === false;
+  const hostPlayer = players.find((p) => p.userId === room.hostId);
+  const participatingPlayers = hostSpectating
+    ? players.filter((p) => p.userId !== room.hostId)
+    : players;
+  const allReady = participatingPlayers.length >= 2;
 
   const copyInvite = () => {
     navigator.clipboard.writeText(inviteLink);
     toast.success("Invite link copied!");
-  };
-
-  const handleReady = async () => {
-    setReadying(true);
-    await fetch(`/api/rooms/${room.id}/ready`, { method: "POST" });
-    onRefresh();
-    setReadying(false);
   };
 
   const handleStart = async () => {
@@ -167,16 +162,35 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
         </>
       )}
 
+      {/* Spectating Host — separate section */}
+      {hostSpectating && hostPlayer && (
+        <Card className="border-dashed">
+          <CardContent className="py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback>
+                    {hostPlayer.displayName.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-medium">{hostPlayer.displayName}</span>
+              </div>
+              <Badge variant="secondary">Host (Spectating)</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Player List */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">
-            Players ({players.length}/{room.maxPlayers})
+            Players ({participatingPlayers.length}/{room.maxPlayers})
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {players.map((player) => (
+            {participatingPlayers.map((player) => (
               <div key={player.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
@@ -192,9 +206,7 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
                 {player.userId === room.hostId ? (
                   <Badge variant="secondary">Host</Badge>
                 ) : (
-                  <Badge variant={player.status === "ready" ? "default" : "outline"}>
-                    {player.status === "ready" ? "Ready" : "Not Ready"}
-                  </Badge>
+                  <Badge variant="outline">Joined</Badge>
                 )}
               </div>
             ))}
@@ -227,9 +239,7 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
       {/* Start requirements hint for host */}
       {isHost && !allReady && (
         <p className="text-sm text-muted-foreground text-center">
-          {players.length < 2
-            ? "Waiting for at least one more player to join..."
-            : "Waiting for all players to ready up..."}
+          Waiting for at least one more player to join...
         </p>
       )}
 
@@ -238,11 +248,6 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
         <Button variant="outline" onClick={handleLeave}>
           Leave Room
         </Button>
-        {!isHost && currentPlayer && (
-          <Button onClick={handleReady} disabled={readying}>
-            {currentPlayer.status === "ready" ? "Unready" : "Ready Up"}
-          </Button>
-        )}
         {isHost && (
           <Button onClick={handleStart} disabled={starting || !allReady}>
             {starting ? "Starting..." : "Start Game"}

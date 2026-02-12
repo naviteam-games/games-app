@@ -28,13 +28,18 @@ export async function POST(
     const plugin = gameRegistry.getPlugin(room.gameSlug);
     if (!plugin) return NextResponse.json({ error: "Game type not found" }, { status: 400 });
 
-    if (players.length < plugin.minPlayers) {
+    const hostPlays = room.config.hostPlays !== false;
+    const participatingPlayers = hostPlays
+      ? players
+      : players.filter((p) => p.userId !== room.hostId);
+
+    if (participatingPlayers.length < plugin.minPlayers) {
       return NextResponse.json({
         error: `Need at least ${plugin.minPlayers} players to start`,
       }, { status: 400 });
     }
 
-    const playerIds = players.map((p) => p.userId);
+    const playerIds = participatingPlayers.map((p) => p.userId);
     const stateData = plugin.initializeState(room.config, playerIds);
     const totalRounds = (room.config.rounds as number) ?? 3;
     const phaseDuration = plugin.getPhaseDuration("playing", room.config);
