@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { SocialLoginButtons } from "@/presentation/components/auth/social-login-buttons";
 import { Separator } from "@/components/ui/separator";
-import { APP_NAME } from "@/lib/constants";
+import { APP_NAME, getBaseUrl } from "@/lib/constants";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -39,7 +39,7 @@ export default function RegisterPage() {
       password,
       options: {
         data: { display_name: displayName },
-        emailRedirectTo: `${window.location.origin}/callback`,
+        emailRedirectTo: `${getBaseUrl()}/callback`,
       },
     });
 
@@ -131,13 +131,16 @@ export default function RegisterPage() {
 
           <SocialLoginButtons />
         </CardContent>
-        <CardFooter className="justify-center">
-          <p className="text-sm text-muted-foreground">
+        <CardFooter className="flex flex-col gap-2 text-sm text-center">
+          <p className="text-muted-foreground">
             Already have an account?{" "}
             <Link href="/login" className="text-primary hover:underline">
               Sign in
             </Link>
           </p>
+          <Link href="/" className="text-muted-foreground hover:underline">
+            Back to home
+          </Link>
         </CardFooter>
       </Card>
     </div>

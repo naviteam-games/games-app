@@ -103,6 +103,9 @@ function LoginForm() {
             Sign up
           </Link>
         </p>
+        <Link href="/" className="text-muted-foreground hover:underline">
+          Back to home
+        </Link>
       </CardFooter>
     </Card>
   );

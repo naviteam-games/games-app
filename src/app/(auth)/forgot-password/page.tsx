@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/infrastructure/supabase/client";
 import { forgotPasswordSchema } from "@/lib/schemas";
+import { getBaseUrl } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,7 +29,7 @@ export default function ForgotPasswordPage() {
 
     setLoading(true);
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/callback`,
+      redirectTo: `${getBaseUrl()}/callback`,
     });
 
     if (resetError) {
