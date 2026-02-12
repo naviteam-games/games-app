@@ -293,29 +293,27 @@ export function NumberGuesserBoard({ playerView, playerId, isHost, isSpectator, 
                 </Card>
               )}
 
-              {/* Guess History */}
+              {/* Guess History — compact pills, latest first */}
               {myGuesses.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Your Guesses</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {myGuesses.map((g, i) => (
-                        <div key={i} className="flex items-center justify-between p-2 rounded bg-muted/50">
-                          <span className="font-mono text-lg">{g}</span>
-                          {hints[i] === "correct" ? (
-                            <Badge className="bg-emerald-500 text-white dark:bg-emerald-500">Correct!</Badge>
-                          ) : hints[i] === "higher" ? (
-                            <Badge className="bg-amber-500 text-white dark:bg-amber-500">Higher</Badge>
-                          ) : (
-                            <Badge className="bg-sky-500 text-white dark:bg-sky-500">Lower</Badge>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="flex flex-wrap-reverse gap-1.5 sm:gap-2 justify-center">
+                  {myGuesses.map((g, i) => (
+                    <span
+                      key={i}
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 sm:px-3 sm:py-1 text-sm sm:text-base font-mono font-bold ${
+                        hints[i] === "correct"
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+                          : hints[i] === "higher"
+                            ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                            : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                      }`}
+                    >
+                      {g}
+                      <span className="text-xs sm:text-sm font-sans font-bold">
+                        {hints[i] === "correct" ? "✓" : hints[i] === "higher" ? "↑" : "↓"}
+                      </span>
+                    </span>
+                  ))}
+                </div>
               )}
             </>
           )}

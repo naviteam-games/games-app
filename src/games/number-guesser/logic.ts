@@ -39,8 +39,16 @@ export function validateAction(
     return { valid: true };
   }
 
+  if (action.type === "end_game") {
+    return { valid: true };
+  }
+
   if (action.type !== "guess") {
     return { valid: false, error: "Invalid action type" };
+  }
+
+  if (state.timeUp) {
+    return { valid: false, error: "Time is up" };
   }
 
   const guess = action.data.guess as number;
@@ -76,6 +84,12 @@ export function applyAction(
 
   if (action.type === "time_up") {
     state.timeUp = true;
+    return state as unknown as Record<string, unknown>;
+  }
+
+  if (action.type === "end_game") {
+    state.forceEnd = true;
+    state.advancePhase = true;
     return state as unknown as Record<string, unknown>;
   }
 
@@ -176,7 +190,7 @@ export function getNextPhase(currentPhase: GamePhase, stateRaw: Record<string, u
 
 export function isGameOver(stateRaw: Record<string, unknown>): boolean {
   const state = stateRaw as unknown as NumberGuesserState;
-  return state.currentRound > state.totalRounds;
+  return state.forceEnd === true || state.currentRound > state.totalRounds;
 }
 
 export function calculateResults(stateRaw: Record<string, unknown>): GameResult {

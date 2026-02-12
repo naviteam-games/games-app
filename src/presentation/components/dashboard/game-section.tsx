@@ -38,8 +38,8 @@ function GameRow({ room, playerCounts, label }: { room: GameRoom; playerCounts: 
   const joined = playerCounts[room.id] ?? 0;
   return (
     <Link href={`/room/${room.id}`} className="block">
-      <div className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-muted/50 transition-colors">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3 px-4 py-3 rounded-lg hover:bg-muted/50 transition-colors">
+        <div className="flex items-center gap-2 min-w-0">
           <span className="font-medium truncate">{room.name}</span>
           <Badge variant="outline" className="text-xs shrink-0">
             {gameNames[room.gameSlug] ?? room.gameSlug}
@@ -48,9 +48,9 @@ function GameRow({ room, playerCounts, label }: { room: GameRoom; playerCounts: 
             <Badge variant="secondary" className="text-xs shrink-0">{label}</Badge>
           )}
         </div>
-        <div className="flex items-center gap-3 shrink-0 ml-4">
-          <span className="text-sm text-muted-foreground">
-            {joined} / {room.maxPlayers} joined
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-xs sm:text-sm text-muted-foreground">
+            {joined}/{room.maxPlayers} joined
           </span>
           <Badge variant="secondary" className={statusColors[room.status]}>
             {room.status}

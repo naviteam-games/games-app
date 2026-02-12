@@ -25,6 +25,7 @@ export interface NumberGuesserState {
   playerIds: string[];
   advancePhase?: boolean;
   timeUp?: boolean;
+  forceEnd?: boolean;
 }
 
 export interface PlayerRoundResult {

@@ -48,6 +48,10 @@
   --color-game-success: var(--game-success);
   --color-game-warning: var(--game-warning);
   --color-game-info: var(--game-info);
+  --color-blue-100: oklch(0.932 0.032 254.6);
+  --color-blue-300: oklch(0.809 0.105 251.81);
+  --color-blue-800: oklch(0.424 0.199 265.64);
+  --color-blue-900: oklch(0.379 0.146 265.52);
 }
 
 :root {

@@ -27,6 +27,7 @@ export class SupabasePlayerRepository implements IPlayerRepository {
         user_id: userId,
         display_name: displayName,
         avatar_url: avatarUrl,
+        status: 'ready',
       })
       .select()
       .single();

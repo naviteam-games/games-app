@@ -25,7 +25,7 @@ const howToPlay = {
   "number-guesser": {
     host: [
       "A secret number is picked each round.",
-      "Players guess and get hints: higher or lower.",
+      "Players guess and get color-coded hints: 🟡 Go higher, 🔵 Go lower, 🟢 Correct!",
       "Fewer guesses = more points. First to solve scores highest.",
       "The game runs multiple rounds — top scorer wins!",
     ],
@@ -37,7 +37,7 @@ const howToPlay = {
     ],
     player: [
       "Each round, guess the secret number.",
-      "After each guess you'll see: Higher or Lower.",
+      "After each guess you'll see: 🟡 Go higher, 🔵 Go lower, 🟢 Correct!",
       "Solve it in fewer guesses to score more points.",
       "Most points after all rounds wins!",
     ],

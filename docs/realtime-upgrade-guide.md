@@ -47,7 +47,9 @@ fetchRef.current = fetchRoom;
 
 useEffect(() => {
   if (!user) return;
-  const id = setInterval(() => { fetchRef.current(); }, POLL_INTERVAL_MS);
+  const id = setInterval(() => {
+    fetchRef.current();
+  }, POLL_INTERVAL_MS);
   return () => clearInterval(id);
 }, [user]);
 ```
@@ -63,7 +65,9 @@ const supabase = createClient();
 const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 const debouncedFetch = useCallback(() => {
   if (debounceRef.current) clearTimeout(debounceRef.current);
-  debounceRef.current = setTimeout(() => { fetchRoom(); }, 300);
+  debounceRef.current = setTimeout(() => {
+    fetchRoom();
+  }, 300);
 }, [fetchRoom]);
 
 useEffect(() => {
@@ -73,18 +77,39 @@ useEffect(() => {
     .channel(`room:${roomId}`)
     .on(
       "postgres_changes",
-      { event: "*", schema: "public", table: "game_rooms", filter: `id=eq.${roomId}` },
-      () => { debouncedFetch(); }
+      {
+        event: "*",
+        schema: "public",
+        table: "game_rooms",
+        filter: `id=eq.${roomId}`,
+      },
+      () => {
+        debouncedFetch();
+      },
     )
     .on(
       "postgres_changes",
-      { event: "*", schema: "public", table: "game_states", filter: `room_id=eq.${roomId}` },
-      () => { debouncedFetch(); }
+      {
+        event: "*",
+        schema: "public",
+        table: "game_states",
+        filter: `room_id=eq.${roomId}`,
+      },
+      () => {
+        debouncedFetch();
+      },
     )
     .on(
       "postgres_changes",
-      { event: "*", schema: "public", table: "room_players", filter: `room_id=eq.${roomId}` },
-      () => { debouncedFetch(); }
+      {
+        event: "*",
+        schema: "public",
+        table: "room_players",
+        filter: `room_id=eq.${roomId}`,
+      },
+      () => {
+        debouncedFetch();
+      },
     )
     .subscribe();
 
@@ -107,12 +132,12 @@ The 300ms debounce coalesces rapid-fire events when a single action updates mult
 
 ## Troubleshooting
 
-| Symptom | Cause | Fix |
-|---|---|---|
-| No events received at all | Tables not in publication or Realtime not enabled in dashboard | Check Dashboard > Database > Replication |
-| `id` filter works but `room_id` filter doesn't | `REPLICA IDENTITY` not set to FULL | Run `ALTER TABLE <table> REPLICA IDENTITY FULL;` |
-| Events received but RLS blocks delivery | User's JWT can't SELECT the row | Verify `is_room_member` / `is_room_host` returns true for the user |
-| Events fire but double-fetch happens | Debounce too short or missing | Increase debounce from 300ms or check the ref cleanup |
+| Symptom                                        | Cause                                                          | Fix                                                                |
+| ---------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------ |
+| No events received at all                      | Tables not in publication or Realtime not enabled in dashboard | Check Dashboard > Database > Replication                           |
+| `id` filter works but `room_id` filter doesn't | `REPLICA IDENTITY` not set to FULL                             | Run `ALTER TABLE <table> REPLICA IDENTITY FULL;`                   |
+| Events received but RLS blocks delivery        | User's JWT can't SELECT the row                                | Verify `is_room_member` / `is_room_host` returns true for the user |
+| Events fire but double-fetch happens           | Debounce too short or missing                                  | Increase debounce from 300ms or check the ref cleanup              |
 
 ## Hybrid Approach (Recommended)
 
@@ -130,7 +155,11 @@ fetchRef.current = fetchRoom;
 
 useEffect(() => {
   if (!user) return;
-  const id = setInterval(() => { fetchRef.current(); }, FALLBACK_POLL_MS);
+  const id = setInterval(() => {
+    fetchRef.current();
+  }, FALLBACK_POLL_MS);
   return () => clearInterval(id);
 }, [user]);
 ```
+
+# Done

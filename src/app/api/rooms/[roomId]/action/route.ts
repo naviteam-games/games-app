@@ -36,6 +36,11 @@ export async function POST(
     const plugin = gameRegistry.getPlugin(room.gameSlug);
     if (!plugin) return NextResponse.json({ error: "Game type not found" }, { status: 400 });
 
+    // Reject guesses outside the playing phase (prevents late-guess race condition)
+    if (parsed.data.actionType === "guess" && gameState.phase !== "playing") {
+      return NextResponse.json({ error: "Round has ended" }, { status: 400 });
+    }
+
     const action = {
       type: parsed.data.actionType,
       playerId: user.id,
@@ -67,8 +72,9 @@ export async function POST(
     if (plugin.isPhaseComplete(newStateData, gameState.phase)) {
       newStateData = plugin.resolvePhase(newStateData, gameState.phase);
 
-      // After round_end, check if the game is over
-      if (gameState.phase !== "playing" && plugin.isGameOver(newStateData)) {
+      // Check if the game is over (normally after round_end, or immediately on forceEnd)
+      const forceEnd = (newStateData as Record<string, unknown>).forceEnd === true;
+      if ((forceEnd || gameState.phase !== "playing") && plugin.isGameOver(newStateData)) {
         newPhase = "finished";
         phaseDeadline = null;
 
