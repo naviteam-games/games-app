@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
+import { gameRegistry } from "@/games/registry";
 
 interface GameRoom {
   id: string;
@@ -36,12 +37,17 @@ const gameNames: Record<string, string> = {
 
 function GameRow({ room, playerCounts, label }: { room: GameRoom; playerCounts: Record<string, number>; label?: string }) {
   const joined = playerCounts[room.id] ?? 0;
+  const plugin = gameRegistry.getPlugin(room.gameSlug);
   return (
     <Link href={`/room/${room.id}`} className="block">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3 px-4 py-3 rounded-lg hover:bg-muted/50 transition-colors">
         <div className="flex items-center gap-2 min-w-0">
           <span className="font-medium truncate">{room.name}</span>
-          <Badge variant="outline" className="text-xs shrink-0">
+          <Badge
+            variant="outline"
+            className="text-xs shrink-0 font-medium"
+            style={plugin?.theme ? { borderColor: plugin.theme.primary, color: plugin.theme.primary } : undefined}
+          >
             {gameNames[room.gameSlug] ?? room.gameSlug}
           </Badge>
           {label && (

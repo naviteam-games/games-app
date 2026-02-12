@@ -59,6 +59,9 @@ export interface IGamePlugin {
   minPlayers: number;
   maxPlayers: number;
   hostPlays: boolean;
+  theme?: {
+    primary: string; // CSS color for badges/inline use (hex or oklch)
+  };
 
   // Pure game logic
   initializeState(config: GameConfig, playerIds: string[]): Record<string, unknown>;

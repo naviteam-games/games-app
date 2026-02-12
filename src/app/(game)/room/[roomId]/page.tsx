@@ -125,8 +125,14 @@ export default function RoomPage() {
   const { room, players, gameState, inviteCodes } = data;
   const isHost = room.hostId === user.id;
 
+  const themed = (content: React.ReactNode) => (
+    <div className={`game-theme-${room.gameSlug} min-h-[calc(100vh-5rem)]`}>
+      {content}
+    </div>
+  );
+
   if (room.status === "waiting") {
-    return (
+    return themed(
       <WaitingRoom
         room={room}
         players={players}
@@ -139,7 +145,7 @@ export default function RoomPage() {
   }
 
   if (room.status === "playing" && gameState) {
-    return (
+    return themed(
       <GameContainer
         room={room}
         players={players}
@@ -151,7 +157,7 @@ export default function RoomPage() {
   }
 
   if (room.status === "finished" && gameState) {
-    return (
+    return themed(
       <ResultsView
         room={room}
         players={players}
@@ -162,7 +168,7 @@ export default function RoomPage() {
     );
   }
 
-  return (
+  return themed(
     <div className="text-center py-12">
       <p className="text-muted-foreground">This game has been cancelled.</p>
     </div>

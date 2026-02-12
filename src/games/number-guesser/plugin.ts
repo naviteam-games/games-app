@@ -24,6 +24,7 @@ export const numberGuesserPlugin: IGamePlugin = {
   minPlayers: 2,
   maxPlayers: 20,
   hostPlays: true,
+  theme: { primary: "oklch(0.55 0.17 180)" },
 
   initializeState(config: GameConfig, playerIds: string[]): Record<string, unknown> {
     return initializeState(config, playerIds);

@@ -133,6 +133,21 @@
   --game-info: oklch(0.685 0.169 217);
 }
 
+/* ── Game themes ─────────────────────────────── */
+.game-theme-number-guesser {
+  --primary: oklch(0.55 0.17 180);
+  --primary-foreground: oklch(1 0 0);
+  --ring: oklch(0.55 0.17 180);
+  background: linear-gradient(to bottom, oklch(0.97 0.015 180), transparent 300px);
+}
+
+.dark .game-theme-number-guesser {
+  --primary: oklch(0.7 0.15 180);
+  --primary-foreground: oklch(0.15 0.02 180);
+  --ring: oklch(0.7 0.15 180);
+  background: linear-gradient(to bottom, oklch(0.18 0.02 180), transparent 300px);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
