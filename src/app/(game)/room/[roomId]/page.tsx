@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { createClient } from "@/infrastructure/supabase/client";
 import { useAuth } from "@/presentation/providers/auth-provider";
 import { WaitingRoom } from "@/presentation/components/room/waiting-room";
 import { GameContainer } from "@/presentation/components/room/game-container";
@@ -12,7 +13,7 @@ import type { Player } from "@/domain/entities/player";
 import type { GameState } from "@/domain/entities/game-state";
 import type { InviteCode } from "@/domain/entities/invite";
 
-const POLL_INTERVAL_MS = 3000;
+const FALLBACK_POLL_MS = 10000;
 
 interface RoomData {
   room: GameRoom;
@@ -53,15 +54,62 @@ export default function RoomPage() {
     }
   }, [fetchRoom, user]);
 
-  // Poll for updates every 3 seconds — reliable regardless of
-  // Supabase Realtime configuration. When you enable Postgres Changes
-  // in the Supabase dashboard later, you can reduce/remove this.
-  const fetchRef = useRef(fetchRoom);
-  fetchRef.current = fetchRoom;
+  // Stable refs — keep the realtime effect dependency-free from
+  // objects that change reference on every render (user, fetchRoom).
+  const supabaseRef = useRef(createClient());
+  const fetchRoomRef = useRef(fetchRoom);
+  fetchRoomRef.current = fetchRoom;
+
+  // Supabase Realtime subscription — sub-second updates via Postgres Changes.
+  // Uses !!user (boolean) as dep so the channel waits for auth but doesn't
+  // re-subscribe when the user object reference changes.
+  const isAuthenticated = !!user;
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const supabase = supabaseRef.current;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const debouncedFetch = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => { fetchRoomRef.current(); }, 300);
+    };
+
+    // Unique suffix avoids channel-name collisions during React Strict Mode
+    // double-mount in development.
+    const channelName = `room:${roomId}:${Date.now()}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "game_rooms", filter: `id=eq.${roomId}` },
+        () => { debouncedFetch(); }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "game_states", filter: `room_id=eq.${roomId}` },
+        () => { debouncedFetch(); }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "room_players", filter: `room_id=eq.${roomId}` },
+        () => { debouncedFetch(); }
+      )
+      .subscribe((status) => {
+        console.log(`[Realtime] ${channelName} → ${status}`);
+      });
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
+  }, [roomId, isAuthenticated]);
+
+  // Fallback poll in case Realtime drops
+  useEffect(() => {
     if (!user) return;
-    const id = setInterval(() => { fetchRef.current(); }, POLL_INTERVAL_MS);
+    const id = setInterval(() => { fetchRoomRef.current(); }, FALLBACK_POLL_MS);
     return () => clearInterval(id);
   }, [user]);
 
