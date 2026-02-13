@@ -11,8 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { APP_NAME } from "@/lib/constants";
 import { ThemeToggle } from "@/presentation/components/shared/theme-toggle";
+import { AppLogo } from "@/presentation/components/shared/app-logo";
 
 export function Navbar() {
   const { user, loading, isAnonymous, signOut } = useAuth();
@@ -26,7 +26,7 @@ export function Navbar() {
     return (
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <span className="text-lg font-bold">{APP_NAME}</span>
+          <AppLogo className="text-lg" />
           <ThemeToggle />
         </div>
       </header>
@@ -38,8 +38,8 @@ export function Navbar() {
     return (
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <Link href="/" className="text-lg font-bold">
-            {APP_NAME}
+          <Link href="/">
+            <AppLogo className="text-lg" />
           </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -58,8 +58,8 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
-        <Link href="/dashboard" className="text-lg font-bold">
-          {APP_NAME}
+        <Link href="/dashboard">
+          <AppLogo className="text-lg" />
         </Link>
 
         <div className="flex items-center gap-4">

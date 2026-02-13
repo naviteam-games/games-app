@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { SocialLoginButtons } from "@/presentation/components/auth/social-login-buttons";
 import { Separator } from "@/components/ui/separator";
-import { APP_NAME, getBaseUrl } from "@/lib/constants";
+import { getBaseUrl } from "@/lib/constants";
+import { AppLogo } from "@/presentation/components/shared/app-logo";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -78,7 +79,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">{APP_NAME}</CardTitle>
+          <CardTitle className="text-2xl"><AppLogo className="text-2xl" /></CardTitle>
           <CardDescription>Create your account</CardDescription>
         </CardHeader>
         <CardContent>
@@ -138,7 +139,7 @@ export default function RegisterPage() {
               Sign in
             </Link>
           </p>
-          <Link href="/" className="text-muted-foreground hover:underline">
+          <Link href="/" className="text-primary font-medium hover:underline">
             Back to home
           </Link>
         </CardFooter>

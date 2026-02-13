@@ -36,7 +36,6 @@ const providerIcons: Record<string, ReactNode> = {
 const providers: { name: string; provider: Provider }[] = [
   { name: "Google", provider: "google" },
   { name: "Facebook", provider: "facebook" },
-  { name: "LinkedIn", provider: "linkedin_oidc" },
 ];
 
 export function SocialLoginButtons() {

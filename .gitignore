@@ -15,7 +15,8 @@
 
 # next.js
 /.next/
-/out/
+/out/*
+!/out/index.html
 
 # production
 /build
@@ -39,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Capacitor native build artifacts
+android/app/build/
+android/.gradle/
+android/local.properties
+ios/App/Pods/
+ios/DerivedData/

@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const publicRoutes = ["/", "/login", "/register", "/forgot-password", "/callback"];
+const publicRoutes = ["/", "/login", "/register", "/forgot-password", "/callback", "/play"];
 
 // Routes accessible to both anonymous and authenticated users
 const gameRoutePatterns = [/^\/join\//, /^\/room\/(?!create)/];

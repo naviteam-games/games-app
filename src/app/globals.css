@@ -155,4 +155,12 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Safe areas for native app shell */
+  @supports (padding-top: env(safe-area-inset-top)) {
+    .native-safe-area {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
 }

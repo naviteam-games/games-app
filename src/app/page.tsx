@@ -1,23 +1,12 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { APP_NAME } from "@/lib/constants";
+import { AppLogo } from "@/presentation/components/shared/app-logo";
+import { LandingNavbar } from "@/presentation/components/layout/landing-navbar";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <h1 className="text-xl font-bold">{APP_NAME}</h1>
-          <div className="flex gap-2">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/register">Sign Up</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <LandingNavbar />
 
       <main className="flex-1 flex items-center justify-center px-4 relative overflow-hidden">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,oklch(0.55_0.24_264/0.12),transparent)]" />
@@ -42,7 +31,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-        <p>{APP_NAME} — Private team games platform</p>
+        <p><AppLogo /> — Private team games platform</p>
       </footer>
     </div>
   );

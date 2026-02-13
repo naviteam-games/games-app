@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { SocialLoginButtons } from "@/presentation/components/auth/social-login-buttons";
 import { Separator } from "@/components/ui/separator";
-import { APP_NAME } from "@/lib/constants";
+import { AppLogo } from "@/presentation/components/shared/app-logo";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -51,7 +51,7 @@ function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">{APP_NAME}</CardTitle>
+        <CardTitle className="text-2xl"><AppLogo className="text-2xl" /></CardTitle>
         <CardDescription>Sign in to your account</CardDescription>
       </CardHeader>
       <CardContent>
@@ -103,7 +103,7 @@ function LoginForm() {
             Sign up
           </Link>
         </p>
-        <Link href="/" className="text-muted-foreground hover:underline">
+        <Link href="/" className="text-primary font-medium hover:underline">
           Back to home
         </Link>
       </CardFooter>
