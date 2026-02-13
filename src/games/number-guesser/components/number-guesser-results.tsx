@@ -158,7 +158,7 @@ const podiumConfig = {
     badgeText: "#713f12",
     badgeBorder: "rgba(234, 179, 8, 0.5)",
     labelColor: "rgba(113, 63, 18, 0.85)",
-    label: "1st",
+    label: "I",
   },
   2: {
     blockHeight: 108,
@@ -171,7 +171,7 @@ const podiumConfig = {
     badgeText: "#1e293b",
     badgeBorder: "rgba(148, 163, 184, 0.5)",
     labelColor: "rgba(30, 41, 59, 0.8)",
-    label: "2nd",
+    label: "II",
   },
   3: {
     blockHeight: 80,
@@ -184,9 +184,13 @@ const podiumConfig = {
     badgeText: "#7c2d12",
     badgeBorder: "rgba(234, 88, 12, 0.5)",
     labelColor: "rgba(124, 45, 18, 0.85)",
-    label: "3rd",
+    label: "III",
   },
 };
+
+function getPodiumPlaces(playerCount: number): number {
+  return playerCount >= 3 ? 3 : 2;
+}
 
 const ABOVE_BLOCK_HEIGHT = 110;
 const MAX_BLOCK_HEIGHT = podiumConfig[1].blockHeight;
@@ -261,7 +265,7 @@ function PodiumColumn({
       {/* Podium block — rises up from the base */}
       {visible && (
         <motion.div
-          className="w-full rounded-t-xl flex flex-col items-center justify-center gap-1.5"
+          className="w-full rounded-t-xl flex flex-col items-center justify-between py-3"
           style={{
             height: config.blockHeight,
             transformOrigin: "bottom",
@@ -277,7 +281,7 @@ function PodiumColumn({
             damping: 14,
           }}
         >
-          <span className="text-xl font-extrabold" style={{ color: config.labelColor }}>
+          <span className="text-4xl font-serif font-bold" style={{ color: config.labelColor, textShadow: `0 1px 2px rgba(0,0,0,0.1)` }}>
             {config.label}
           </span>
           {entry && (
@@ -287,7 +291,7 @@ function PodiumColumn({
               transition={{ delay: 0.5, type: "spring", stiffness: 300, damping: 15 }}
             >
               <span
-                className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold font-mono tabular-nums"
+                className="inline-flex items-center rounded-full px-3 py-1 text-sm font-bold font-mono tabular-nums"
                 style={{
                   backgroundColor: config.badgeBg,
                   color: config.badgeText,
@@ -312,47 +316,67 @@ function HostPodium({
   rankings: GameResult["rankings"];
   players: GameResultsProps["players"];
 }) {
-  // Staggered reveal: bronze → silver → gold
+  const places = getPodiumPlaces(rankings.length);
+  const totalSteps = places + 1; // +1 for the rest list
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    if (step > 3) return; // 0=nothing, 1=bronze, 2=silver, 3=gold, 4=rest list
-    const delays = [600, 1200, 1200, 1000];
+    if (step > places) return;
+    // Slower reveal: longer pauses between each place
+    const delays = [800, 1800, 1800, 1500];
     const timer = setTimeout(() => setStep((s) => s + 1), delays[step]);
     return () => clearTimeout(timer);
-  }, [step]);
+  }, [step, places]);
 
   const first = rankings.find((r) => r.rank === 1);
   const second = rankings.find((r) => r.rank === 2);
-  const third = rankings.find((r) => r.rank === 3);
-  const rest = rankings.filter((r) => r.rank > 3).sort((a, b) => a.rank - b.rank);
+  const third = places >= 3 ? rankings.find((r) => r.rank === 3) : undefined;
+  const rest = rankings.filter((r) => r.rank > places).sort((a, b) => a.rank - b.rank);
+
+  // Reveal order: last place first → ... → 1st place
+  // 3 places: step 1=III, step 2=II, step 3=I
+  // 2 places: step 1=II, step 2=I
+  const isVisible = (rank: 1 | 2 | 3) => {
+    if (places === 2) {
+      if (rank === 3) return false;
+      if (rank === 2) return step >= 1;
+      if (rank === 1) return step >= 2;
+    }
+    // 3 places
+    if (rank === 3) return step >= 1;
+    if (rank === 2) return step >= 2;
+    if (rank === 1) return step >= 3;
+    return false;
+  };
 
   return (
     <div className="space-y-6">
-      {/* Podium — layout: [3rd] [1st] [2nd], all on the same baseline */}
+      {/* Podium — layout depends on number of places */}
       <div className="flex items-end justify-center gap-2 px-4 pt-4">
-        <PodiumColumn
-          entry={third}
-          players={players}
-          rank={3}
-          visible={step >= 1}
-        />
+        {places >= 3 && (
+          <PodiumColumn
+            entry={third}
+            players={players}
+            rank={3}
+            visible={isVisible(3)}
+          />
+        )}
         <PodiumColumn
           entry={first}
           players={players}
           rank={1}
-          visible={step >= 3}
+          visible={isVisible(1)}
         />
         <PodiumColumn
           entry={second}
           players={players}
           rank={2}
-          visible={step >= 2}
+          visible={isVisible(2)}
         />
       </div>
 
-      {/* 4th+ compact list */}
-      {step >= 4 && rest.length > 0 && (
+      {/* Remaining players compact list */}
+      {step > places && rest.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

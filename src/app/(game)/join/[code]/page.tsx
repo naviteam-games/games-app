@@ -130,7 +130,7 @@ export default function JoinByCodePage() {
 
   if (loading || authLoading || signingIn) {
     return (
-      <div className="max-w-md mx-auto">
+      <div className="max-w-md mx-auto px-4 py-6">
         <Card>
           <CardHeader>
             <Skeleton className="h-6 w-48" />
@@ -146,7 +146,7 @@ export default function JoinByCodePage() {
 
   if (!info?.valid || !info.room) {
     return (
-      <div className="max-w-md mx-auto">
+      <div className="max-w-md mx-auto px-4 py-6">
         <Card>
           <CardHeader>
             <CardTitle>Invalid Invite</CardTitle>

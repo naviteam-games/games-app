@@ -127,7 +127,9 @@ export default function RoomPage() {
 
   const themed = (content: React.ReactNode) => (
     <div className={`game-theme-${room.gameSlug} min-h-[calc(100vh-5rem)]`}>
-      {content}
+      <div className="container mx-auto px-4 py-6">
+        {content}
+      </div>
     </div>
   );
 

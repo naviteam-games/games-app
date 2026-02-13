@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Abril_Fatface } from "next/font/google";
 import "./globals.css";
 import { APP_NAME } from "@/lib/constants";
 import { ThemeProvider } from "@/presentation/providers/theme-provider";
@@ -15,6 +15,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const abrilFatface = Abril_Fatface({
+  variable: "--font-dm-serif",
+  weight: "400",
+  subsets: ["latin"],
+});
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1.0,
@@ -23,7 +29,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: APP_NAME,
-  description: "Private team games platform — create rooms, invite your team, play together.",
+  description: "Small games, Big fun — create rooms, invite your group, play together.",
 };
 
 export default function RootLayout({
@@ -34,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${abrilFatface.variable} antialiased`}
       >
         <ThemeProvider>{children}</ThemeProvider>
         <Script id="capacitor-safe-area" strategy="afterInteractive">{`

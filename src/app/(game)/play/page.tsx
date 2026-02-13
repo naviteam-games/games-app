@@ -20,7 +20,7 @@ export default function PlayPage() {
   };
 
   return (
-    <div className="flex flex-1 items-center justify-center px-4">
+    <div className="flex flex-1 items-center justify-center px-4 py-6">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl"><AppLogo className="text-2xl" /></CardTitle>
