@@ -23,9 +23,10 @@ const funnyPhrases = [
 
 interface FunnyLoaderProps {
   size?: "sm" | "lg";
+  themeColor?: string; // CSS color (e.g. oklch or hex) for the dots
 }
 
-export function FunnyLoader({ size = "sm" }: FunnyLoaderProps) {
+export function FunnyLoader({ size = "sm", themeColor }: FunnyLoaderProps) {
   const [phraseIndex, setPhraseIndex] = useState(
     () => Math.floor(Math.random() * funnyPhrases.length)
   );
@@ -64,7 +65,8 @@ export function FunnyLoader({ size = "sm" }: FunnyLoaderProps) {
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
-              className="h-2.5 w-2.5 rounded-full bg-primary"
+              className={`h-2.5 w-2.5 rounded-full ${themeColor ? "" : "bg-primary"}`}
+              style={themeColor ? { backgroundColor: themeColor } : undefined}
               animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
               transition={{
                 duration: 1,
@@ -97,7 +99,8 @@ export function FunnyLoader({ size = "sm" }: FunnyLoaderProps) {
         {[0, 1, 2].map((i) => (
           <motion.div
             key={i}
-            className="h-1.5 w-1.5 rounded-full bg-muted-foreground"
+            className={`h-1.5 w-1.5 rounded-full ${themeColor ? "" : "bg-muted-foreground"}`}
+            style={themeColor ? { backgroundColor: themeColor } : undefined}
             animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
             transition={{
               duration: 1,

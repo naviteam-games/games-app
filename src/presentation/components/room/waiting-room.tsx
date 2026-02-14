@@ -197,7 +197,7 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
         </CardHeader>
         <CardContent className="space-y-3">
           {!inviteReady ? (
-            <FunnyLoader size="lg" />
+            <FunnyLoader size="lg" themeColor={gameRegistry.getPlugin(room.gameSlug)?.theme?.primary} />
           ) : (
             <>
               <div className="flex gap-2">
