@@ -19,8 +19,8 @@ import { NumberGuesserResults } from "./components/number-guesser-results";
 
 export const numberGuesserPlugin: IGamePlugin = {
   slug: "number-guesser",
-  name: "Number Guesser",
-  description: "Guess the secret number! Closest guess wins the round.",
+  name: "Crunch It",
+  description: "Guess the secret number in each round! Score points and bonus.",
   minPlayers: 2,
   maxPlayers: 20,
   hostPlays: true,

@@ -32,7 +32,7 @@ const statusColors: Record<string, string> = {
 };
 
 const gameNames: Record<string, string> = {
-  "number-guesser": "Number Guesser",
+  "number-guesser": "Crunch It",
 };
 
 function GameRow({ room, playerCounts, label }: { room: GameRoom; playerCounts: Record<string, number>; label?: string }) {

@@ -20,7 +20,7 @@ import { ThreeCrumbsResults } from "./components/three-crumbs-results";
 export const threeCrumbsPlugin: IGamePlugin = {
   slug: "three-crumbs",
   name: "3 Crumbs",
-  description: "3 clues, 1 answer — guess the word from the crumbs the host reveals!",
+  description: "3 clues, 1 answer — guess the answer from the crumbs (clues) the host reveals!",
   minPlayers: 2,
   maxPlayers: 50,
   hostPlays: false,

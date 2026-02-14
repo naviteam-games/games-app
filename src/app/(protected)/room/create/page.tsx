@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/client";
 import { createRoomSchema } from "@/lib/schemas";
 import { DEFAULT_MAX_PLAYERS } from "@/lib/constants";
@@ -48,12 +48,17 @@ export default function CreateRoomPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   useEffect(() => {
     supabase.from("games").select("*").then(({ data }) => {
       if (data) {
         setGames(data);
+        const preselect = searchParams.get("game");
+        if (preselect && !gameSlug && data.some((g) => g.slug === preselect)) {
+          handleGameSlugChange(preselect);
+        }
       }
     });
   }, [supabase]);
