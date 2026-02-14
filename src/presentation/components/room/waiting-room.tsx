@@ -23,6 +23,14 @@ import type { InviteCode } from "@/domain/entities/invite";
 import { FunnyLoader } from "@/presentation/components/shared/funny-loader";
 import { gameRegistry } from "@/games/registry";
 
+const categoryLabels: Record<string, string> = {
+  bible: "Bible",
+  food: "Food",
+  animals: "Animals",
+  holidays: "Holidays",
+  office: "Office / Workplace",
+};
+
 function useInviteReady(code: string | undefined) {
   const [ready, setReady] = useState(false);
   const [validated, setValidated] = useState(false);
@@ -146,6 +154,7 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
   const [starting, setStarting] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [howToPlayOpen, setHowToPlayOpen] = useState(!isHost);
+  const plugin = gameRegistry.getPlugin(room.gameSlug);
   const rules = howToPlay[room.gameSlug];
 
   const inviteCode = inviteCodes[0]?.code;
@@ -185,9 +194,22 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div>
+      <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold">{room.name}</h1>
-        <p className="text-muted-foreground">{gameRegistry.getPlugin(room.gameSlug)?.name ?? room.gameSlug} — Waiting for players</p>
+        <div className="flex items-center justify-center gap-2">
+          <Badge
+            className="text-sm px-3 py-1 font-semibold text-white"
+            style={{ backgroundColor: plugin?.theme?.primary ?? undefined }}
+          >
+            {plugin?.name ?? room.gameSlug}
+          </Badge>
+          {typeof room.config.category === "string" && (
+            <Badge variant="outline" className="text-sm px-3 py-1">
+              {categoryLabels[room.config.category] ?? room.config.category}
+            </Badge>
+          )}
+        </div>
+        <p className="text-muted-foreground">Waiting for players</p>
       </div>
 
       {/* Invite Panel */}
@@ -197,7 +219,7 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
         </CardHeader>
         <CardContent className="space-y-3">
           {!inviteReady ? (
-            <FunnyLoader size="lg" themeColor={gameRegistry.getPlugin(room.gameSlug)?.theme?.primary} />
+            <FunnyLoader size="lg" themeColor={plugin?.theme?.primary} />
           ) : (
             <>
               <div className="flex gap-2">

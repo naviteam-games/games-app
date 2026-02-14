@@ -46,14 +46,21 @@ export function ResultsView({ room, players, gameState, currentUserId, isHost }:
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center space-y-1">
-        <h1 className="text-3xl font-bold">{plugin.name}</h1>
-        <p className="text-muted-foreground">Room: {room.name}</p>
-        {category && (
-          <Badge variant="outline" className="text-xs">
-            {categoryLabels[category] ?? category}
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold">{room.name}</h1>
+        <div className="flex items-center justify-center gap-2">
+          <Badge
+            className="text-sm px-3 py-1 font-semibold text-white"
+            style={{ backgroundColor: plugin.theme?.primary ?? undefined }}
+          >
+            {plugin.name}
           </Badge>
-        )}
+          {category && (
+            <Badge variant="outline" className="text-sm px-3 py-1">
+              {categoryLabels[category] ?? category}
+            </Badge>
+          )}
+        </div>
         <p className="text-sm font-medium text-muted-foreground">Game Over!</p>
       </div>
 

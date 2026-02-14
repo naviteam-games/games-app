@@ -2,7 +2,16 @@
 
 import { useCallback } from "react";
 import { gameRegistry } from "@/games/registry";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+
+const categoryLabels: Record<string, string> = {
+  bible: "Bible",
+  food: "Food",
+  animals: "Animals",
+  holidays: "Holidays",
+  office: "Office / Workplace",
+};
 import type { GameRoom } from "@/domain/entities/game-room";
 import type { Player } from "@/domain/entities/player";
 import type { GameState } from "@/domain/entities/game-state";
@@ -49,11 +58,21 @@ export function GameContainer({ room, players, gameState, currentUserId, onRefre
 
   return (
     <div className="max-w-4xl mx-auto space-y-4">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">{plugin.name}</h1>
-        <p className="text-muted-foreground">
-          Room: {room.name}
-        </p>
+      <div className="text-center space-y-2">
+        <h1 className="text-2xl font-bold">{room.name}</h1>
+        <div className="flex items-center justify-center gap-2">
+          <Badge
+            className="text-sm px-3 py-1 font-semibold text-white"
+            style={{ backgroundColor: plugin.theme?.primary ?? undefined }}
+          >
+            {plugin.name}
+          </Badge>
+          {typeof room.config.category === "string" && (
+            <Badge variant="outline" className="text-sm px-3 py-1">
+              {categoryLabels[room.config.category] ?? room.config.category}
+            </Badge>
+          )}
+        </div>
       </div>
 
       <Board

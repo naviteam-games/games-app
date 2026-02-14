@@ -31,10 +31,6 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 };
 
-const gameNames: Record<string, string> = {
-  "number-guesser": "Crunch It",
-};
-
 function GameRow({ room, playerCounts, label }: { room: GameRoom; playerCounts: Record<string, number>; label?: string }) {
   const joined = playerCounts[room.id] ?? 0;
   const plugin = gameRegistry.getPlugin(room.gameSlug);
@@ -48,7 +44,7 @@ function GameRow({ room, playerCounts, label }: { room: GameRoom; playerCounts: 
             className="text-xs shrink-0 font-medium"
             style={plugin?.theme ? { borderColor: plugin.theme.primary, color: plugin.theme.primary } : undefined}
           >
-            {gameNames[room.gameSlug] ?? room.gameSlug}
+            {plugin?.name ?? room.gameSlug}
           </Badge>
           {label && (
             <Badge variant="secondary" className="text-xs shrink-0">{label}</Badge>
