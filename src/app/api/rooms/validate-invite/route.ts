@@ -18,7 +18,9 @@ export async function GET(request: NextRequest) {
     );
 
     const result = await useCase.execute(code);
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: { "Cache-Control": "no-store, max-age=0" },
+    });
   } catch (error) {
     console.error("Validate invite error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -17,7 +17,7 @@ export class ValidateInviteUseCase {
     private playerRepo: IPlayerRepository
   ) {}
 
-  async execute(code: string, retries = 3, delayMs = 300): Promise<ValidateInviteResult> {
+  async execute(code: string, retries = 5, delayMs = 500): Promise<ValidateInviteResult> {
     let invite = await this.inviteRepo.findByCode(code);
 
     // Retry to handle Supabase replication lag on freshly created codes

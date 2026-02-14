@@ -49,17 +49,44 @@ export default function JoinByCodePage() {
   }, []);
 
   // Validate invite code (works without auth via updated API)
+  // Retries client-side if first attempt returns invalid (handles replication lag + edge caching)
   useEffect(() => {
-    fetch(`/api/rooms/validate-invite?code=${code}`)
-      .then((r) => r.json())
-      .then((data) => {
+    let cancelled = false;
+    let retryTimer: ReturnType<typeof setTimeout>;
+
+    const validate = async (attempt = 0) => {
+      try {
+        const res = await fetch(`/api/rooms/validate-invite?code=${code}`, {
+          cache: "no-store",
+        });
+        const data = await res.json();
+
+        if (cancelled) return;
+
+        if (!data.valid && attempt < 2) {
+          // Retry after a delay — handles Supabase replication lag
+          retryTimer = setTimeout(() => validate(attempt + 1), 1500);
+          return;
+        }
+
         setInfo(data);
         setDataReady(true);
-      })
-      .catch(() => {
+      } catch {
+        if (cancelled) return;
+        if (attempt < 2) {
+          retryTimer = setTimeout(() => validate(attempt + 1), 1500);
+          return;
+        }
         setError("Failed to validate invite");
         setDataReady(true);
-      });
+      }
+    };
+
+    validate();
+    return () => {
+      cancelled = true;
+      clearTimeout(retryTimer);
+    };
   }, [code]);
 
   // Clear loading when both min delay and data are ready
