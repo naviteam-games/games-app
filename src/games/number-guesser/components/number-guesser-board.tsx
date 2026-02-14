@@ -29,9 +29,10 @@ export function NumberGuesserBoard({ playerView, playerId, isHost, isSpectator, 
 
   const { publicState, privateState, phase } = playerView;
 
-  // Reset timeExpired when phase changes (new round starts)
+  // Reset state when phase changes (new round starts)
   useEffect(() => {
     setTimeExpired(false);
+    setGuess("");
   }, [phase]);
   const minNumber = publicState.minNumber as number;
   const maxNumber = publicState.maxNumber as number;
@@ -86,6 +87,9 @@ export function NumberGuesserBoard({ playerView, playerId, isHost, isSpectator, 
           ? Object.values(playerStatus ?? {}).filter((s) => s.solved).length
           : 0;
 
+        const currentRound = publicState.currentRound as number;
+        const totalRounds = publicState.totalRounds as number;
+
         if (isSpectator) {
           return (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3">
@@ -93,11 +97,9 @@ export function NumberGuesserBoard({ playerView, playerId, isHost, isSpectator, 
                 <Badge variant="secondary">Spectating</Badge>
                 <span className="text-sm text-muted-foreground">You are watching this game</span>
               </div>
-              {phase === "playing" && (
-                <Badge variant="secondary" className="text-xs">
-                  {solvedCount} / {participatingPlayers} solved
-                </Badge>
-              )}
+              <Badge variant="secondary" className="text-xs">
+                Round {Math.min(currentRound, totalRounds)} / {totalRounds}
+              </Badge>
             </div>
           );
         }
@@ -115,11 +117,9 @@ export function NumberGuesserBoard({ playerView, playerId, isHost, isSpectator, 
                 {myRank === 1 ? "1st" : myRank === 2 ? "2nd" : myRank === 3 ? "3rd" : `${myRank}th`} of {participatingPlayers}
               </Badge>
             </div>
-            {phase === "playing" && (
-              <Badge variant="secondary" className="text-xs">
-                {solvedCount} / {participatingPlayers} solved
-              </Badge>
-            )}
+            <Badge variant="secondary" className="text-xs">
+              Round {Math.min(currentRound, totalRounds)} / {totalRounds}
+            </Badge>
           </div>
         );
       })()}

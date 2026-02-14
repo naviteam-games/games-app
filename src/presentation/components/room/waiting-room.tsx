@@ -21,6 +21,7 @@ import type { GameRoom } from "@/domain/entities/game-room";
 import type { Player } from "@/domain/entities/player";
 import type { InviteCode } from "@/domain/entities/invite";
 import { FunnyLoader } from "@/presentation/components/shared/funny-loader";
+import { gameRegistry } from "@/games/registry";
 
 function useInviteReady(code: string | undefined) {
   const [ready, setReady] = useState(false);
@@ -84,6 +85,26 @@ const howToPlay = {
       "Each round, guess the secret number.",
       "After each guess you'll see: 🟡 Go higher, 🔵 Go lower, 🟢 Correct!",
       "Solve it in fewer guesses to score more points.",
+      "Most points after all rounds wins!",
+    ],
+  },
+  "three-crumbs": {
+    host: [
+      "Each round, 3 clues are revealed one at a time on YOUR screen.",
+      "Players see NO clues — they guess the answer on their own device.",
+      "Solving on Clue 1 = 300 pts, Clue 2 = 200 pts, Clue 3 = 100 pts, plus a time bonus.",
+      "The host does NOT play — you share your screen so everyone sees the clues.",
+    ],
+    hostGuide: [
+      "Share the invite link so players can join.",
+      "Press Start Game once at least 2 players have joined.",
+      "Share your screen so everyone can see the clues.",
+      "Between rounds, click Next Round when ready to continue.",
+    ],
+    player: [
+      "The host will share their screen showing clues — look at the big screen!",
+      "3 clues are revealed over time: hardest first, easiest last.",
+      "Type your guess on your device. Solve earlier for more points!",
       "Most points after all rounds wins!",
     ],
   },
@@ -166,7 +187,7 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold">{room.name}</h1>
-        <p className="text-muted-foreground">{room.gameSlug} — Waiting for players</p>
+        <p className="text-muted-foreground">{gameRegistry.getPlugin(room.gameSlug)?.name ?? room.gameSlug} — Waiting for players</p>
       </div>
 
       {/* Invite Panel */}

@@ -49,13 +49,11 @@ export function GameContainer({ room, players, gameState, currentUserId, onRefre
 
   return (
     <div className="max-w-4xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{room.name}</h1>
-          <p className="text-muted-foreground">
-            Round {Math.min(gameState.currentRound, gameState.totalRounds)} of {gameState.totalRounds}
-          </p>
-        </div>
+      <div className="text-center">
+        <h1 className="text-2xl font-bold">{plugin.name}</h1>
+        <p className="text-muted-foreground">
+          Room: {room.name}
+        </p>
       </div>
 
       <Board

@@ -24,4 +24,6 @@ export const gameRegistry = new GameRegistry();
 
 // Register all games here
 import { numberGuesserPlugin } from "./number-guesser/plugin";
+import { threeCrumbsPlugin } from "./three-crumbs/plugin";
 gameRegistry.register(numberGuesserPlugin);
+gameRegistry.register(threeCrumbsPlugin);

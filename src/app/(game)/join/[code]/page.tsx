@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FunnyLoader } from "@/presentation/components/shared/funny-loader";
+import { gameRegistry } from "@/games/registry";
 
 interface InviteInfo {
   valid: boolean;
@@ -41,7 +42,7 @@ export default function JoinByCodePage() {
   const [minDelayPassed, setMinDelayPassed] = useState(false);
   const [dataReady, setDataReady] = useState(false);
 
-  // Minimum 2s animation time for the funny loader
+  // Minimum animation time for the funny loader
   useEffect(() => {
     const timer = setTimeout(() => setMinDelayPassed(true), 3000);
     return () => clearTimeout(timer);
@@ -61,7 +62,7 @@ export default function JoinByCodePage() {
       });
   }, [code]);
 
-  // Only clear loading when both min delay and data are ready
+  // Clear loading when both min delay and data are ready
   useEffect(() => {
     if (dataReady && minDelayPassed) setLoading(false);
   }, [dataReady, minDelayPassed]);
@@ -206,7 +207,7 @@ export default function JoinByCodePage() {
                 <p className="text-xs text-muted-foreground">Room</p>
                 <span className="font-medium">{info.room.name}</span>
               </div>
-              <Badge variant="secondary">{info.room.gameSlug}</Badge>
+              <Badge variant="secondary">{gameRegistry.getPlugin(info.room.gameSlug)?.name ?? info.room.gameSlug}</Badge>
             </div>
             <p className="text-sm text-muted-foreground">
               {info.playerCount} / {info.room.maxPlayers} players

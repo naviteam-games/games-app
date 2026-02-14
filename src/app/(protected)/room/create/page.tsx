@@ -18,12 +18,15 @@ import {
 } from "@/components/ui/select";
 import { NumberGuesserConfig } from "@/games/number-guesser/components/number-guesser-config";
 import { getDefaultConfig as getNumberGuesserDefaults } from "@/games/number-guesser/logic";
+import { ThreeCrumbsConfig } from "@/games/three-crumbs/components/three-crumbs-config";
+import { getDefaultConfig as getThreeCrumbsDefaults } from "@/games/three-crumbs/logic";
 import type { ComponentType } from "react";
 import type { GameConfigProps } from "@/domain/game-engine/types";
 import { gameRegistry } from "@/games/registry";
 
 const gameConfigs: Record<string, { Component: ComponentType<GameConfigProps>; defaults: Record<string, unknown> }> = {
   "number-guesser": { Component: NumberGuesserConfig, defaults: getNumberGuesserDefaults() },
+  "three-crumbs": { Component: ThreeCrumbsConfig, defaults: getThreeCrumbsDefaults() },
 };
 
 interface GameType {
@@ -51,11 +54,6 @@ export default function CreateRoomPage() {
     supabase.from("games").select("*").then(({ data }) => {
       if (data) {
         setGames(data);
-        if (data.length > 0) {
-          setGameSlug(data[0].slug);
-          setConfig(gameConfigs[data[0].slug]?.defaults ?? {});
-          setHostPlays(gameRegistry.getPlugin(data[0].slug)?.hostPlays ?? true);
-        }
       }
     });
   }, [supabase]);

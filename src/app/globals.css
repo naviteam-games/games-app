@@ -149,6 +149,20 @@
   background: linear-gradient(to bottom, oklch(0.18 0.02 180), transparent 300px);
 }
 
+.game-theme-three-crumbs {
+  --primary: oklch(0.65 0.18 55);
+  --primary-foreground: oklch(1 0 0);
+  --ring: oklch(0.65 0.18 55);
+  background: linear-gradient(to bottom, oklch(0.97 0.015 55), transparent 300px);
+}
+
+.dark .game-theme-three-crumbs {
+  --primary: oklch(0.75 0.15 55);
+  --primary-foreground: oklch(0.15 0.02 55);
+  --ring: oklch(0.75 0.15 55);
+  background: linear-gradient(to bottom, oklch(0.18 0.02 55), transparent 300px);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
