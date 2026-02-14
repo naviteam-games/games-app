@@ -15,9 +15,10 @@ import { Label } from "@/components/ui/label";
 interface DisplayNamePromptProps {
   open: boolean;
   onComplete: (displayName: string) => void;
+  onCancel?: () => void;
 }
 
-export function DisplayNamePrompt({ open, onComplete }: DisplayNamePromptProps) {
+export function DisplayNamePrompt({ open, onComplete, onCancel }: DisplayNamePromptProps) {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -45,8 +46,8 @@ export function DisplayNamePrompt({ open, onComplete }: DisplayNamePromptProps) 
   };
 
   return (
-    <Dialog open={open}>
-      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen && onCancel) onCancel(); }}>
+      <DialogContent className="sm:max-w-md" onInteractOutside={onCancel ? undefined : (e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Welcome, Guest!</DialogTitle>
           <DialogDescription>

@@ -17,6 +17,7 @@ export interface NumberGuesserState {
   currentRound: number;
   totalRounds: number;
   targetNumber: number;
+  roundTargets: number[];
   guesses: Record<string, number[]>;
   solvedBy: Record<string, SolvedEntry>;
   roundStartedAt: number;

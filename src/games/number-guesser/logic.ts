@@ -10,11 +10,16 @@ export function computeScore(guessCount: number, timeRemaining: number, roundDur
 
 export function initializeState(config: GameConfig, playerIds: string[]): Record<string, unknown> {
   const c = config as unknown as NumberGuesserConfig;
+  const totalRounds = c.rounds ?? 3;
+  const min = c.minNumber ?? 1;
+  const max = c.maxNumber ?? 100;
+  const roundTargets = generateDistributedNumbers(min, max, totalRounds);
   const state: NumberGuesserState = {
     config: c,
     currentRound: 1,
-    totalRounds: c.rounds ?? 3,
-    targetNumber: randomNumber(c.minNumber ?? 1, c.maxNumber ?? 100),
+    totalRounds,
+    targetNumber: roundTargets[0],
+    roundTargets,
     guesses: Object.fromEntries(playerIds.map((id) => [id, []])),
     solvedBy: {},
     roundStartedAt: Date.now(),
@@ -169,7 +174,7 @@ export function resolvePhase(stateRaw: Record<string, unknown>, phase: GamePhase
 
   // Prepare next round
   state.currentRound += 1;
-  state.targetNumber = randomNumber(state.config.minNumber, state.config.maxNumber);
+  state.targetNumber = state.roundTargets[state.currentRound - 1] ?? randomNumber(state.config.minNumber, state.config.maxNumber);
   state.guesses = Object.fromEntries(state.playerIds.map((id) => [id, []]));
   state.solvedBy = {};
 
@@ -282,4 +287,25 @@ export function getPhaseDuration(phase: GamePhase, config: GameConfig): number |
 
 function randomNumber(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/** Generate evenly distributed numbers across the range, one per bucket, in shuffled order. */
+function generateDistributedNumbers(min: number, max: number, count: number): number[] {
+  const range = max - min + 1;
+  const bucketSize = range / count;
+  const numbers: number[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const bucketMin = Math.floor(min + i * bucketSize);
+    const bucketMax = Math.floor(min + (i + 1) * bucketSize) - 1;
+    numbers.push(randomNumber(bucketMin, Math.min(bucketMax, max)));
+  }
+
+  // Shuffle so the order isn't predictable (low-to-high)
+  for (let i = numbers.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+  }
+
+  return numbers;
 }

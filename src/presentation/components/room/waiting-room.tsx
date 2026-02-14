@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,51 @@ import { QRCodeSVG } from "qrcode.react";
 import type { GameRoom } from "@/domain/entities/game-room";
 import type { Player } from "@/domain/entities/player";
 import type { InviteCode } from "@/domain/entities/invite";
+import { FunnyLoader } from "@/presentation/components/shared/funny-loader";
+
+function useInviteReady(code: string | undefined) {
+  const [ready, setReady] = useState(false);
+  const [validated, setValidated] = useState(false);
+  const [minDelayPassed, setMinDelayPassed] = useState(false);
+
+  const check = useCallback(async () => {
+    if (!code) return;
+    try {
+      const res = await fetch(`/api/rooms/validate-invite?code=${code}`);
+      const data = await res.json();
+      if (data.valid) setValidated(true);
+    } catch {
+      // ignore, will retry
+    }
+  }, [code]);
+
+  // Minimum 2.5s animation time
+  useEffect(() => {
+    const timer = setTimeout(() => setMinDelayPassed(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Poll until validated
+  useEffect(() => {
+    if (!code || validated) return;
+
+    check();
+    const id = setInterval(check, 500);
+    const timeout = setTimeout(() => setValidated(true), 10000);
+
+    return () => {
+      clearInterval(id);
+      clearTimeout(timeout);
+    };
+  }, [code, check, validated]);
+
+  // Only reveal when both conditions met
+  useEffect(() => {
+    if (validated && minDelayPassed) setReady(true);
+  }, [validated, minDelayPassed]);
+
+  return ready;
+}
 
 const howToPlay = {
   "number-guesser": {
@@ -83,6 +128,7 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
   const rules = howToPlay[room.gameSlug];
 
   const inviteCode = inviteCodes[0]?.code;
+  const inviteReady = useInviteReady(inviteCode);
   const inviteLink = typeof window !== "undefined"
     ? `${window.location.origin}/join/${inviteCode}`
     : "";
@@ -129,27 +175,33 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
           <CardTitle className="text-lg">Invite Your Team</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex gap-2">
-            <code className="flex-1 bg-muted px-3 py-2 rounded-md text-sm font-mono truncate">
-              {inviteCode}
-            </code>
-            <Button variant="outline" size="sm" onClick={copyInvite}>
-              Copy Link
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowQr((v) => !v)}>
-              <QrCode className="h-4 w-4" />
-            </Button>
-          </div>
-          {showQr && inviteLink && (
-            <div className="flex justify-center pt-2">
-              <div className="bg-white p-3 rounded-lg">
-                <QRCodeSVG value={inviteLink} size={180} />
+          {!inviteReady ? (
+            <FunnyLoader size="lg" />
+          ) : (
+            <>
+              <div className="flex gap-2">
+                <code className="flex-1 bg-muted px-3 py-2 rounded-md text-sm font-mono truncate">
+                  {inviteCode}
+                </code>
+                <Button variant="outline" size="sm" onClick={copyInvite}>
+                  Copy Link
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setShowQr((v) => !v)}>
+                  <QrCode className="h-4 w-4" />
+                </Button>
               </div>
-            </div>
+              {showQr && inviteLink && (
+                <div className="flex justify-center pt-2">
+                  <div className="bg-white p-3 rounded-lg">
+                    <QRCodeSVG value={inviteLink} size={180} />
+                  </div>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Share this link or code with your teammates
+              </p>
+            </>
           )}
-          <p className="text-xs text-muted-foreground">
-            Share this link or code with your teammates
-          </p>
         </CardContent>
       </Card>
 

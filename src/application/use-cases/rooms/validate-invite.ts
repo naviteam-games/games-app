@@ -17,8 +17,17 @@ export class ValidateInviteUseCase {
     private playerRepo: IPlayerRepository
   ) {}
 
-  async execute(code: string): Promise<ValidateInviteResult> {
-    const invite = await this.inviteRepo.findByCode(code);
+  async execute(code: string, retries = 3, delayMs = 300): Promise<ValidateInviteResult> {
+    let invite = await this.inviteRepo.findByCode(code);
+
+    // Retry to handle Supabase replication lag on freshly created codes
+    if (!invite && retries > 0) {
+      for (let i = 0; i < retries && !invite; i++) {
+        await new Promise((r) => setTimeout(r, delayMs));
+        invite = await this.inviteRepo.findByCode(code);
+      }
+    }
+
     if (!invite) return { valid: false, room: null, playerCount: 0, error: "Invalid invite code" };
 
     if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {

@@ -8,7 +8,7 @@ import { DisplayNamePrompt } from "@/presentation/components/shared/display-name
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { FunnyLoader } from "@/presentation/components/shared/funny-loader";
 
 interface InviteInfo {
   valid: boolean;
@@ -37,6 +37,15 @@ export default function JoinByCodePage() {
   const [nameCollected, setNameCollected] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const [joinAttempted, setJoinAttempted] = useState(false);
+  const [promptDismissed, setPromptDismissed] = useState(false);
+  const [minDelayPassed, setMinDelayPassed] = useState(false);
+  const [dataReady, setDataReady] = useState(false);
+
+  // Minimum 2s animation time for the funny loader
+  useEffect(() => {
+    const timer = setTimeout(() => setMinDelayPassed(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Validate invite code (works without auth via updated API)
   useEffect(() => {
@@ -44,13 +53,18 @@ export default function JoinByCodePage() {
       .then((r) => r.json())
       .then((data) => {
         setInfo(data);
-        setLoading(false);
+        setDataReady(true);
       })
       .catch(() => {
         setError("Failed to validate invite");
-        setLoading(false);
+        setDataReady(true);
       });
   }, [code]);
+
+  // Only clear loading when both min delay and data are ready
+  useEffect(() => {
+    if (dataReady && minDelayPassed) setLoading(false);
+  }, [dataReady, minDelayPassed]);
 
   // Auto sign-in anonymously if no user session exists
   useEffect(() => {
@@ -68,12 +82,13 @@ export default function JoinByCodePage() {
     signInAnon();
   }, [authLoading, user, signingIn, supabase.auth]);
 
-  // Show name prompt once anonymous user is ready (only once)
+  // Show name prompt once anonymous user is ready (only on first load, not after dismiss)
   useEffect(() => {
-    if (user && isAnonymous && info?.valid && !showNamePrompt && !nameCollected && !joining) {
+    if (user && isAnonymous && info?.valid && !showNamePrompt && !nameCollected && !joining && !promptDismissed) {
       setShowNamePrompt(true);
     }
-  }, [user, isAnonymous, info, showNamePrompt, nameCollected, joining]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isAnonymous, info?.valid]);
 
   const handleJoin = useCallback(async () => {
     if (!info?.room) return;
@@ -128,16 +143,12 @@ export default function JoinByCodePage() {
     }
   }, [user, isAnonymous, info, joining, joinAttempted, handleJoin]);
 
-  if (loading || authLoading || signingIn) {
+  if (loading || (!dataReady && (authLoading || signingIn))) {
     return (
       <div className="max-w-md mx-auto px-4 py-6">
         <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-48" />
-            <Skeleton className="h-4 w-32 mt-2" />
-          </CardHeader>
           <CardContent>
-            <Skeleton className="h-10 w-full" />
+            <FunnyLoader size="lg" />
           </CardContent>
         </Card>
       </div>
@@ -162,11 +173,26 @@ export default function JoinByCodePage() {
     );
   }
 
+  const handleCancelPrompt = () => {
+    setShowNamePrompt(false);
+    setPromptDismissed(true);
+  };
+
+  const handleJoinClick = () => {
+    if (isAnonymous && !nameCollected) {
+      setPromptDismissed(false);
+      setShowNamePrompt(true);
+    } else {
+      handleJoin();
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto">
       <DisplayNamePrompt
         open={showNamePrompt}
         onComplete={handleNameComplete}
+        onCancel={handleCancelPrompt}
       />
       <Card>
         <CardHeader>
@@ -176,7 +202,10 @@ export default function JoinByCodePage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-medium">{info.room.name}</span>
+              <div>
+                <p className="text-xs text-muted-foreground">Room</p>
+                <span className="font-medium">{info.room.name}</span>
+              </div>
               <Badge variant="secondary">{info.room.gameSlug}</Badge>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -187,14 +216,20 @@ export default function JoinByCodePage() {
           {error && (
             <div className="space-y-2">
               <p className="text-sm text-destructive">{error}</p>
-              <Button size="sm" variant="outline" onClick={() => handleJoin()}>
-                Try Again
-              </Button>
             </div>
           )}
 
-          {joining && !error && (
+          {joining && !error ? (
             <p className="text-sm text-muted-foreground">Joining game...</p>
+          ) : (
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1" onClick={() => router.push("/")}>
+                Go Home
+              </Button>
+              <Button className="flex-1" onClick={handleJoinClick}>
+                Join Game
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
