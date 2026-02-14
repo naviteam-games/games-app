@@ -42,6 +42,12 @@ export function SocialLoginButtons() {
   const supabase = createClient();
 
   const handleSocialLogin = async (provider: Provider) => {
+    // Sign out anonymous session first — it blocks OAuth initiation
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.is_anonymous) {
+      await supabase.auth.signOut();
+    }
+
     await supabase.auth.signInWithOAuth({
       provider,
       options: {
