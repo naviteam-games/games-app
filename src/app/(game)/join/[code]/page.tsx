@@ -132,6 +132,11 @@ export default function JoinByCodePage() {
 
       const data = await res.json();
       if (!res.ok) {
+        // Already in room — redirect to it instead of showing an error
+        if (data.code === "ALREADY_IN_ROOM") {
+          router.push(`/room/${data.roomId ?? info.room!.id}`);
+          return;
+        }
         setError(data.error ?? "Failed to join game");
         setJoining(false);
         return;

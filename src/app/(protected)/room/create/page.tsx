@@ -41,7 +41,7 @@ interface GameType {
 export default function CreateRoomPage() {
   const [name, setName] = useState("");
   const [gameSlug, setGameSlug] = useState("");
-  const [maxPlayers, setMaxPlayers] = useState(DEFAULT_MAX_PLAYERS);
+  const [maxPlayers, setMaxPlayers] = useState<number | "">(DEFAULT_MAX_PLAYERS);
   const [config, setConfig] = useState<Record<string, unknown>>({});
   const [hostPlays, setHostPlays] = useState(true);
   const [games, setGames] = useState<GameType[]>([]);
@@ -74,7 +74,7 @@ export default function CreateRoomPage() {
     setError(null);
 
     const fullConfig = { ...config, hostPlays };
-    const parsed = createRoomSchema.safeParse({ name, gameSlug, maxPlayers, config: fullConfig });
+    const parsed = createRoomSchema.safeParse({ name, gameSlug, maxPlayers: maxPlayers || DEFAULT_MAX_PLAYERS, config: fullConfig });
     if (!parsed.success) {
       setError(parsed.error.issues[0].message);
       return;
@@ -172,7 +172,7 @@ export default function CreateRoomPage() {
                 min={2}
                 max={100}
                 value={maxPlayers}
-                onChange={(e) => setMaxPlayers(Number(e.target.value))}
+                onChange={(e) => setMaxPlayers(e.target.value === "" ? "" : Number(e.target.value))}
               />
             </div>
 

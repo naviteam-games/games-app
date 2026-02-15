@@ -13,8 +13,8 @@ export function NumberGuesserConfig({ config, onChange }: GameConfigProps) {
           type="number"
           min={1}
           max={20}
-          value={(config.rounds as number) ?? 3}
-          onChange={(e) => onChange({ ...config, rounds: Number(e.target.value) })}
+          value={(config.rounds as number | "") ?? 3}
+          onChange={(e) => onChange({ ...config, rounds: e.target.value === "" ? "" : Number(e.target.value) })}
         />
       </div>
       <div className="space-y-2">
@@ -23,8 +23,8 @@ export function NumberGuesserConfig({ config, onChange }: GameConfigProps) {
           type="number"
           min={10}
           max={10000}
-          value={(config.maxNumber as number) ?? 100}
-          onChange={(e) => onChange({ ...config, maxNumber: Number(e.target.value) })}
+          value={(config.maxNumber as number | "") ?? 100}
+          onChange={(e) => onChange({ ...config, maxNumber: e.target.value === "" ? "" : Number(e.target.value) })}
         />
       </div>
       <div className="space-y-2">
@@ -33,8 +33,8 @@ export function NumberGuesserConfig({ config, onChange }: GameConfigProps) {
           type="number"
           min={5}
           max={60}
-          value={(config.roundDurationSeconds as number) ?? 30}
-          onChange={(e) => onChange({ ...config, roundDurationSeconds: Math.min(60, Math.max(5, Number(e.target.value))) })}
+          value={(config.roundDurationSeconds as number | "") ?? 30}
+          onChange={(e) => onChange({ ...config, roundDurationSeconds: e.target.value === "" ? "" : Number(e.target.value) })}
         />
         <p className="text-xs text-muted-foreground">Suggested: 30s. Max: 60s.</p>
       </div>

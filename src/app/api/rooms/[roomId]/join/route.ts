@@ -3,16 +3,17 @@ import { createClient } from "@/infrastructure/supabase/server";
 import { createAdminClient } from "@/infrastructure/supabase/admin";
 import { createContainer } from "@/infrastructure/di/container";
 import { JoinRoomUseCase } from "@/application/use-cases/rooms/join-room";
-import { DomainError } from "@/domain/errors";
+import { DomainError, AlreadyInRoomError } from "@/domain/errors";
 
 export async function POST(request: NextRequest) {
+  const body = await request.json();
+  const { code } = body;
+
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const body = await request.json();
-    const { code } = body;
     if (!code) return NextResponse.json({ error: "Invite code is required" }, { status: 400 });
 
     // Use admin client to bypass RLS — the joining user isn't a room member yet
@@ -35,6 +36,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
+    if (error instanceof AlreadyInRoomError) {
+      // Look up the room so the client can redirect to it
+      const adminClient = createAdminClient();
+      const container = createContainer(adminClient);
+      const invite = await container.inviteRepository.findByCode(code);
+      return NextResponse.json(
+        { error: error.message, code: error.code, roomId: invite?.roomId },
+        { status: 409 }
+      );
+    }
     if (error instanceof DomainError) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: 400 });
     }

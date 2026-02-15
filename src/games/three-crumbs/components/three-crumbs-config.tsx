@@ -66,9 +66,9 @@ export function ThreeCrumbsConfig({ config, onChange }: GameConfigProps) {
           type="number"
           min={5}
           max={20}
-          value={(config.rounds as number) ?? 10}
+          value={(config.rounds as number | "") ?? 10}
           onChange={(e) =>
-            onChange({ ...config, rounds: Math.min(20, Math.max(5, Number(e.target.value))) })
+            onChange({ ...config, rounds: e.target.value === "" ? "" : Number(e.target.value) })
           }
         />
         <p className="text-xs text-muted-foreground">5–20 rounds. Each round is a new question.</p>

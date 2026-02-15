@@ -236,7 +236,7 @@ export function WaitingRoom({ room, players, inviteCodes, isHost, currentUserId,
               {showQr && inviteLink && (
                 <div className="flex justify-center pt-2">
                   <div className="bg-white p-3 rounded-lg">
-                    <QRCodeSVG value={inviteLink} size={180} />
+                    <QRCodeSVG value={inviteLink} size={256} level="H" />
                   </div>
                 </div>
               )}

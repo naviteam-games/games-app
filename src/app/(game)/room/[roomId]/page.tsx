@@ -8,12 +8,14 @@ import { WaitingRoom } from "@/presentation/components/room/waiting-room";
 import { GameContainer } from "@/presentation/components/room/game-container";
 import { ResultsView } from "@/presentation/components/room/results-view";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 import type { GameRoom } from "@/domain/entities/game-room";
 import type { Player } from "@/domain/entities/player";
 import type { GameState } from "@/domain/entities/game-state";
 import type { InviteCode } from "@/domain/entities/invite";
 
-const FALLBACK_POLL_MS = 10000;
+const FALLBACK_POLL_MS = 10_000;
+const RECONNECT_POLL_MS = 3_000;
 
 interface RoomData {
   room: GameRoom;
@@ -28,6 +30,7 @@ export default function RoomPage() {
   const router = useRouter();
   const [data, setData] = useState<RoomData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [connected, setConnected] = useState(true);
 
   // Redirect unauthenticated users to login
   useEffect(() => {
@@ -37,14 +40,24 @@ export default function RoomPage() {
   }, [authLoading, user, router]);
 
   const fetchRoom = useCallback(async () => {
-    const res = await fetch(`/api/rooms/${roomId}`);
-    if (!res.ok) {
-      router.push("/dashboard");
-      return;
+    try {
+      const res = await fetch(`/api/rooms/${roomId}`);
+      if (!res.ok) {
+        // Only redirect on definitive errors, not transient network issues
+        if (res.status === 404 || res.status === 403) {
+          router.push("/dashboard");
+        }
+        return;
+      }
+      const roomData = await res.json();
+      setData(roomData);
+      setLoading(false);
+      // If we were disconnected and fetch succeeded, we're back
+      setConnected(true);
+    } catch {
+      // Network error — don't redirect, just mark as disconnected
+      setConnected(false);
     }
-    const roomData = await res.json();
-    setData(roomData);
-    setLoading(false);
   }, [roomId, router]);
 
   // Initial fetch
@@ -59,6 +72,8 @@ export default function RoomPage() {
   const supabaseRef = useRef(createClient());
   const fetchRoomRef = useRef(fetchRoom);
   fetchRoomRef.current = fetchRoom;
+  const connectedRef = useRef(connected);
+  connectedRef.current = connected;
 
   // Supabase Realtime subscription — sub-second updates via Postgres Changes.
   // Uses !!user (boolean) as dep so the channel waits for auth but doesn't
@@ -98,6 +113,14 @@ export default function RoomPage() {
       )
       .subscribe((status) => {
         console.log(`[Realtime] ${channelName} → ${status}`);
+
+        if (status === "SUBSCRIBED") {
+          setConnected(true);
+          // Fetch immediately on (re)connect to catch anything we missed
+          fetchRoomRef.current();
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          setConnected(false);
+        }
       });
 
     return () => {
@@ -106,12 +129,46 @@ export default function RoomPage() {
     };
   }, [roomId, isAuthenticated]);
 
-  // Fallback poll in case Realtime drops
+  // Fallback poll — faster when disconnected to recover sooner
   useEffect(() => {
     if (!user) return;
-    const id = setInterval(() => { fetchRoomRef.current(); }, FALLBACK_POLL_MS);
+    const id = setInterval(
+      () => { fetchRoomRef.current(); },
+      connectedRef.current ? FALLBACK_POLL_MS : RECONNECT_POLL_MS
+    );
     return () => clearInterval(id);
-  }, [user]);
+  }, [user, connected]);
+
+  // Refetch when tab regains focus (handles phone lock/unlock, tab switch)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchRoomRef.current();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    // Also handle window focus for desktop browsers
+    window.addEventListener("focus", handleVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
+    };
+  }, []);
+
+  // Show/dismiss toast when connection state changes
+  const prevConnected = useRef(true);
+  useEffect(() => {
+    if (!prevConnected.current && connected) {
+      toast.dismiss("connection-lost");
+      toast.success("Reconnected!", { duration: 2000 });
+    } else if (prevConnected.current && !connected) {
+      toast.loading("Connection lost — reconnecting...", {
+        id: "connection-lost",
+        duration: Infinity,
+      });
+    }
+    prevConnected.current = connected;
+  }, [connected]);
 
   if (loading || !data || !user) {
     return (
