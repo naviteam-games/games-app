@@ -27,8 +27,11 @@ export class GetRoomUseCase {
     const room = await this.gameRoomRepo.findById(roomId);
     if (!room) throw new RoomNotFoundError(roomId);
 
+    // Include players who left so their names show in finished game results
+    const includeLeft = room.status === "finished";
+
     const [players, gameState, inviteCodes] = await Promise.all([
-      this.playerRepo.findByRoomId(roomId),
+      this.playerRepo.findByRoomId(roomId, { includeLeft }),
       this.gameStateRepo.findByRoomId(roomId),
       this.inviteRepo.findByRoomId(roomId),
     ]);

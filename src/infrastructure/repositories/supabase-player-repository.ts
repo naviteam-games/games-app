@@ -35,23 +35,31 @@ export class SupabasePlayerRepository implements IPlayerRepository {
     return toPlayer(data);
   }
 
-  async findByRoomId(roomId: string): Promise<Player[]> {
+  async findByRoomId(roomId: string, options?: { includeLeft?: boolean }): Promise<Player[]> {
     // Try with profile join to get anonymous status
-    const { data, error } = await this.supabase
+    let query = this.supabase
       .from("room_players")
       .select("*, profiles:user_id(is_anonymous)")
-      .eq("room_id", roomId)
-      .neq("status", "left")
-      .order("joined_at");
+      .eq("room_id", roomId);
+
+    if (!options?.includeLeft) {
+      query = query.neq("status", "left");
+    }
+
+    const { data, error } = await query.order("joined_at");
 
     // If join fails (e.g. is_anonymous column doesn't exist yet), fall back to simple query
     if (error) {
-      const { data: fallback, error: fallbackError } = await this.supabase
+      let fallbackQuery = this.supabase
         .from("room_players")
         .select("*")
-        .eq("room_id", roomId)
-        .neq("status", "left")
-        .order("joined_at");
+        .eq("room_id", roomId);
+
+      if (!options?.includeLeft) {
+        fallbackQuery = fallbackQuery.neq("status", "left");
+      }
+
+      const { data: fallback, error: fallbackError } = await fallbackQuery.order("joined_at");
       if (fallbackError) throw fallbackError;
       return (fallback ?? []).map(toPlayer);
     }
